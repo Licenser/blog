@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Backups With Project FiFo - Lice!</title>
+  <meta name="author" content="Heinz N. 'Licenser' Gies">
+
+  
+  <meta name="description" content="With 0.4.3 FiFo introduces support for LeoFS and this allows for some quite nice new features. Most importantly it decouples FiFo&rsquo;s operations &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://blog.licenser.net/blog/2014/01/01/backups-with-project-fifo">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Lice!" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-31493882-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Lice!</a></h1>
+  
+    <h2>...</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:blog.licenser.net" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Backups With Project FiFo</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-01T12:15:37+01:00" pubdate data-updated="true">Jan 1<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>With 0.4.3 FiFo introduces support for <a href="http://www.leofs.org">LeoFS</a> and this allows for some quite nice new features. Most importantly it decouples FiFo&rsquo;s operations from storing big amounts of data which makes maintaining either of this much more sensible and scaling storage much more easy.</p>
+
+<p>Then again while nice that is not the important part, just storing datasets somewhere else does not make much of a difference for most users but what LoeFS allows FiFo to store much more data then would be good in the old setup. &lsquo;A lot more&rsquo; here means pretty much as much as you can store.</p>
+
+<p>So with this options 0.4.3 FiFo introduce backups! Backups complement the snapshots already in the system for quiet a while but while snapshots were made to stay on the hypervisor backups are supposed to be shipped off to LeoFS. This not only helps to keep the number of snapshots limited, does not count against the local quota but also widens the failure domain.</p>
+
+<p>And to make it better there is a sensible concept about incremental and full backups, that said there are a few limitations to be aware of:</p>
+
+<ul>
+<li>Backups that stay on the hypervisor will count against the local quota.</li>
+<li>Once a backup is moved away from the hypervisor it can&rsquo;t be restored without overwriting the current state.</li>
+<li>Restoring a backup might mean first deleting the local zfs volume for the vm.</li>
+</ul>
+
+
+<p>But that aside that there are some very interesting things:</p>
+
+<ul>
+<li>While it&rsquo;s not possible to keep multiple branches with snapshots this is very well possible with backups.</li>
+<li>It&rsquo;s possible to make a difference between incremental and full backups choosing between recovery speed or space efficiency.</li>
+</ul>
+
+
+<p>All that sums up to something quite awesome, it allows for proper grandfather backups concepts for VM&rsquo;s and they can even be scripted using the fifo python client. So here is an example how this could be done.</p>
+
+<p>Lets quickly describe what we want to achieve:</p>
+
+<ul>
+<li>Every month we want a full backup.</li>
+<li>Every week we want an incremental backup
+
+<ul>
+<li>for the first week in a month towards the monthly full backup</li>
+<li>for other weeks to the previous week</li>
+</ul>
+</li>
+<li>Every day we want a incremental backup
+
+<ul>
+<li>for the first day of a week from the week backup</li>
+<li>for other days from the previous day</li>
+</ul>
+</li>
+</ul>
+
+
+<p>To allow for the incremental backups we need to keep some of the backups around:</p>
+
+<ul>
+<li>monthly until the first weekly was done.</li>
+<li>weekly until the next weekly was done but not longer the the next monthly.</li>
+<li>daily until the next daily but not longer then the next weekly or monthly.</li>
+</ul>
+
+
+<p>The FiFo backup code fortunately helps a lot with this, a important part of the logic is <em>&lsquo;create a incremental snapshot and delete its parent from the hypervisor&rsquo;</em> and that is exactly the behavior of the backup code when passing both a parent and requesting a delete.</p>
+
+<p>Here some <a href="https://github.com/project-fifo/pyfi/blob/master/examples/backup.sh">code</a> (with some comments added):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/usr/bin/env bash</span>
+</span><span class='line'><span class="nv">fifo</span><span class="o">=</span>fifo
+</span><span class='line'><span class="nv">vm</span><span class="o">=</span><span class="s2">&quot;$2&quot;</span>
+</span><span class='line'><span class="k">case</span> <span class="nv">$1</span> in
+</span><span class='line'>    monthly<span class="o">)</span>
+</span><span class='line'>        <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create monthly
+</span><span class='line'>        <span class="c"># After createing a new monthly snapshot we first delete the last weekly and daily backup</span>
+</span><span class='line'>        <span class="nv">last_daily</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_daily&quot;</span> <span class="o">]</span>
+</span><span class='line'>        <span class="k">then</span>
+</span><span class='line'><span class="k">            </span><span class="nv">daily_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_daily</span> | cut -d: -f1<span class="k">)</span>
+</span><span class='line'>            <span class="c"># the -l flag tells FiFo to only remove the backup from the hypervisor.</span>
+</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$daily_uuid</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'><span class="k">        </span><span class="nv">last_weekly</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_weekly&quot;</span> <span class="o">]</span>
+</span><span class='line'>        <span class="k">then</span>
+</span><span class='line'><span class="k">            </span><span class="nv">weekly_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_weekly</span> | cut -d: -f1<span class="k">)</span>
+</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$weekly_uuid</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    weekly<span class="o">)</span>
+</span><span class='line'>        <span class="nv">last_backup</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;monthly\|weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
+</span><span class='line'>        <span class="nv">uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f1<span class="k">)</span>
+</span><span class='line'>        <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> -d weekly
+</span><span class='line'>        <span class="c"># After creating a new weekly we need to make sure to delete the last daily one</span>
+</span><span class='line'>        <span class="nv">last_daily</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_daily&quot;</span> <span class="o">]</span>
+</span><span class='line'>        <span class="k">then</span>
+</span><span class='line'><span class="k">            </span><span class="nv">daily_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_daily</span> | cut -d: -f1<span class="k">)</span>
+</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$daily_uuid</span>
+</span><span class='line'>        <span class="k">fi</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    daily<span class="o">)</span>
+</span><span class='line'>        <span class="nv">last_backup</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily\|weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
+</span><span class='line'>        <span class="nv">uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f1<span class="k">)</span>
+</span><span class='line'>        <span class="nb">type</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f2<span class="k">)</span>
+</span><span class='line'>        <span class="k">case</span> <span class="nv">$type</span> in
+</span><span class='line'>            weekly<span class="o">)</span>
+</span><span class='line'>                <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> daily
+</span><span class='line'>                ;;
+</span><span class='line'>            daily<span class="o">)</span>
+</span><span class='line'>                <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> -d daily
+</span><span class='line'>                ;;
+</span><span class='line'>        <span class="k">esac</span>
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-01T12:15:37+01:00" pubdate data-updated="true">Jan 1<span>st</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.licenser.net/blog/2014/01/01/backups-with-project-fifo/" data-via="heinz_gies" data-counturl="http://blog.licenser.net/blog/2014/01/01/backups-with-project-fifo/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/06/13/a-asynchronous-gced-or-set/" title="Previous Post: A asynchronously GCed OR Set">&laquo; A asynchronously GCed OR Set</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">Asynchronous Garbage Collection With CRDTs</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/06/happy-birthday-project-fifo/">Happy Birthday Project FiFo</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/04/23/fifo-plus-80loc-of-bash-equals-5-node-riak-cluster/">FiFo + 80LOC of Bash = 5 Node Riak Cluster</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/Licenser">@Licenser</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'Licenser',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Heinz N. 'Licenser' Gies -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'lice';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.licenser.net/blog/2014/01/01/backups-with-project-fifo/';
+        var disqus_url = 'http://blog.licenser.net/blog/2014/01/01/backups-with-project-fifo/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

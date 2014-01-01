@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>A Asynchronously GCed or Set - Lice!</title>
+  <meta name="author" content="Heinz N. 'Licenser' Gies">
+
+  
+  <meta name="description" content="Following the article about Asynchronous garbage collection with CRDTs I experimented with implementing the concept. The OR Set is a very nice data &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Lice!" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-31493882-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Lice!</a></h1>
+  
+    <h2>...</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:blog.licenser.net" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">A Asynchronously GCed or Set</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-13T11:09:00+02:00" pubdate data-updated="true">Jun 13<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Following the <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">article about Asynchronous garbage collection with CRDTs</a> I experimented with <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorsetg.erl">implementing the concept</a>. The OR Set is a very nice data structure for this  since it&rsquo;s rather simple and so is it&rsquo;s garbage!</p>
+
+<p>To garbage collect the <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorset.erl">OR Set</a> we do the following, we take some of the elements of the remove set, and delete them from both the add and the remove set &ndash; this way we save the space for them and generate a new baseline.</p>
+
+<p>First step was to implement the data structure described to hold the collectable items, I call it a <a href="https://github.com/Licenser/ecrdt/blob/master/src/rot.erl">ROT</a> (Roughly Ordered Tree) it&rsquo;s a nice name for garbage related stuff ;) and it is treeish and mostly ordered.</p>
+
+<p>The interface of the ROT is rather simple, Elements must be time tagged, in the form {Time, Element}. Where time must not be a clock, as long as the Erlang comparison operations work on it to give an order. Then it allows asking for full buckets, and removing buckets based on their hash value and newest message timestamp.</p>
+
+<p>While the elements in a the OR set area already tagged with a timestamp, this timestamp records addition, not deletion so it would be misleading to use them since the ROT would think the remove happened when actually the addition happened and this would violate the rule that no event can travel back behind T<sub>100</sub>. As a result we&rsquo;ll have to double timestamp the removes &ndash; as in add a second when when it was removed.</p>
+
+<p>So since the ROT has a very similar interface to a G Set (which implemented the remove set before) the change is trivial. <strong>Remove</strong>, <strong>GC</strong> and the <strong>merge</strong> function are more interesting.</p>
+
+<h3>remove</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">remove</span><span class="p">(</span><span class="nv">Id</span><span class="p">,</span> <span class="nv">Element</span><span class="p">,</span> <span class="nv">ORSet</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes</span><span class="p">})</span> <span class="o">-&gt;</span>
+</span><span class='line'>    <span class="nv">CurrentExisting</span> <span class="o">=</span> <span class="p">[</span><span class="nv">Elem</span> <span class="p">||</span> <span class="nv">Elem</span> <span class="o">=</span> <span class="p">{_,</span> <span class="nv">E1</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="n">raw_value</span><span class="p">(</span><span class="nv">ORSet</span><span class="p">),</span>
+</span><span class='line'>                               <span class="nv">E1</span> <span class="o">=:=</span> <span class="nv">Element</span><span class="p">],</span>
+</span><span class='line'>    <span class="nv">Removes1</span> <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span><span class="p">(</span><span class="nv">R</span><span class="p">,</span> <span class="nv">Rs</span><span class="p">)</span> <span class="o">-&gt;</span>
+</span><span class='line'>                                   <span class="nn">rot</span><span class="p">:</span><span class="nf">add</span><span class="p">({</span><span class="nv">Id</span><span class="p">,</span> <span class="nv">R</span><span class="p">},</span> <span class="nv">Rs</span><span class="p">)</span>
+</span><span class='line'>                           <span class="k">end</span><span class="p">,</span> <span class="nv">Removes</span><span class="p">,</span> <span class="nv">CurrentExisting</span><span class="p">),</span>
+</span><span class='line'>    <span class="nv">ORSet</span><span class="nl">#vorsetg</span><span class="p">{</span><span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes1</span><span class="p">}.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Id</code> defaults to a the current time in nanoseconds since it&rsquo;s precise enough for most cases, but can be given any value that provides timed order. Line 2 and 3 collect all observed and not yet removed instances of the element to delete, we then fold over those instances and add each of them to the ROT.</p>
+
+<h3>GC</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">gc</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span>
+</span><span class='line'>   <span class="nl">#vorsetg</span><span class="p">{</span>
+</span><span class='line'>      <span class="n">adds</span> <span class="o">=</span> <span class="nv">Adds</span><span class="p">,</span>
+</span><span class='line'>      <span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes</span><span class="p">,</span>
+</span><span class='line'>      <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">})</span> <span class="o">-&gt;</span>
+</span><span class='line'>    <span class="p">{</span><span class="nv">Values</span><span class="p">,</span> <span class="nv">Removes1</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rot</span><span class="p">:</span><span class="nf">remove</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span> <span class="nv">Removes</span><span class="p">),</span>
+</span><span class='line'>    <span class="nv">Values1</span> <span class="o">=</span> <span class="p">[</span><span class="nv">V</span> <span class="p">||</span> <span class="p">{_,</span> <span class="nv">V</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">Values</span><span class="p">],</span>
+</span><span class='line'>    <span class="nv">Values2</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">from_list</span><span class="p">(</span><span class="nv">Values1</span><span class="p">),</span>
+</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">adds</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">subtract</span><span class="p">(</span><span class="nv">Adds</span><span class="p">,</span> <span class="nv">Values2</span><span class="p">),</span>
+</span><span class='line'>             <span class="n">gced</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">add_element</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span> <span class="nv">GCed</span><span class="p">),</span>
+</span><span class='line'>             <span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes1</span><span class="p">}.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To GC the set we take the <code>HashID</code>, this is what the rot returns when it reports full buckets, and in line 6 remove it from the ROT. Thankfully the ROT will return the content of the deleted bucket, this comes in very handy, since in the process of garbage collecting the bucket we also need to remove the items once and for all from the add list as seen in line 9. We then record the GC action in line 10 to make sure it will applied during a merge.</p>
+
+<p>Please note that currently this set, even so it is garbage collected still grows without bounds since the GC actions themselves are not (yet) garbage collected, this will be added in a later iteration.</p>
+
+<h3>merge</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">merge</span><span class="p">(</span><span class="nv">ROTA</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">gced</span> <span class="o">=</span> <span class="nv">GCedA</span><span class="p">},</span>
+</span><span class='line'>      <span class="nv">ROTB</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">gced</span> <span class="o">=</span> <span class="nv">GCedB</span><span class="p">})</span> <span class="o">-&gt;</span>
+</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span>
+</span><span class='line'>       <span class="n">adds</span> <span class="o">=</span> <span class="nv">AddsA</span><span class="p">,</span>
+</span><span class='line'>       <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">,</span>
+</span><span class='line'>       <span class="n">removes</span> <span class="o">=</span> <span class="nv">RemovesA</span><span class="p">}</span>
+</span><span class='line'>        <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span> <span class="n">gc</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nv">ROTA</span><span class="p">,</span> <span class="nv">GCedB</span><span class="p">),</span>
+</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span>
+</span><span class='line'>       <span class="n">adds</span> <span class="o">=</span> <span class="nv">AddsB</span><span class="p">,</span>
+</span><span class='line'>       <span class="n">removes</span> <span class="o">=</span> <span class="nv">RemovesB</span><span class="p">}</span>
+</span><span class='line'>        <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span> <span class="n">gc</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nv">ROTB</span><span class="p">,</span> <span class="nv">GCedA</span><span class="p">),</span>
+</span><span class='line'>    <span class="nv">ROT1</span> <span class="o">=</span> <span class="nn">rot</span><span class="p">:</span><span class="nf">merge</span><span class="p">(</span><span class="nv">RemovesA</span><span class="p">,</span> <span class="nv">RemovesB</span><span class="p">),</span>
+</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">adds</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">union</span><span class="p">(</span><span class="nv">AddsA</span><span class="p">,</span> <span class="nv">AddsB</span><span class="p">),</span>
+</span><span class='line'>             <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">,</span>
+</span><span class='line'>             <span class="n">removes</span> <span class="o">=</span> <span class="nv">ROT1</span><span class="p">}.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Merging gets a bit more complicated due to the fact that we now have to take into account that values might be garbage collected in one set but not in the other. While merging them would do no harm it would recreate the garbage which isn&rsquo;t too nice. So what we do is applying the recorded GC actions to both sets first as seen in line 3 to 11 and then merge the remove values (line 12) finally the add values (line 13).</p>
+
+<h2>Results</h2>
+
+<p>I set up some proper tests for the implementation, comparing the GCed OR Set (bucket size 10) with a normal OR Set, running 1000 iterations with a set of 1000 instructions composed of 70% adds and removes, 20% merges and 10% GC events. T<sub>100</sub> is a sliding time from the allowed collection of events older then the last merge.</p>
+
+<p>Each stored element had the size of between 500 and 600 bytes (so there were 100 possible elements). A remove will always remove the stalest element, since they are added in random order this equals a random remove.</p>
+
+<p>The operations are carried out of replicas copies of the set where add, and remove have a equal chance to be either happening just on copy A, or just on copy B, or on both replicas at the some time. GC operations are always carried out on both replicas but it should be noted that the GC operation does not include a merge operation so can be considered asynchronous.</p>
+
+<p>All operations but the GC operation are executed exactly the same on the GCed OR set and the not GCed or Set in the same order and same spread.</p>
+
+<p>At the end a final merge was performed and the resulting values compared for each iteration, no additional GC action takes place at the end.</p>
+
+<p>Measured were both the space reduction per GC run and the final difference of size. Per GC run about 15% space was reclaimed and at the end the GCed set had a total space consumption of around 26% of the normal OR Set in average, 6% in the best and 143% in the worst case.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span><span class="nv">Size</span><span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>   <span class="nv">Avg</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">261</span><span class="p">,</span>  <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">062</span><span class="p">,</span> <span class="nv">Max</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">507</span>
+</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">RS</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">49221</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">866</span><span class="p">,</span>  <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">064</span><span class="p">,</span> <span class="nv">Max</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span>
+</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">GC</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">49221</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">55</span><span class="p">.</span><span class="mi">870</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6483</span>
+</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">MG</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">98357</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">58</span><span class="p">.</span><span class="mi">110</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6596</span>
+</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">OP</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">344708</span><span class="p">,</span> <span class="nv">Avg</span><span class="p">:</span> <span class="mi">38</span><span class="p">.</span><span class="mi">539</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6916</span><span class="err">```</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The numbers are from a test run, for readability truncated manually after 3 digest and aligned to be nicer readable. <strong>Size</strong> is total size at the end of the iteration, <strong>RS</strong> is the space reduction per GC run. <strong>GC</strong>, <strong>MG</strong> and <strong>OP</strong> are the time used for garbage collection, merging and other operations respectively, the numbers are per execution and measured microseconds. Time measurements also include noise that from additional operations required for the test and should not be seen as a useful benchmark!</p>
+
+<h2>Conclusion</h2>
+
+<p>The GC method described seems to work, and not even too badly, in the course of experimenting with values it showed that the conserved space is heavily dependant on the environment like the bucket size chosen, the size of the elements, the add/remove ratio and the ratio on which merges happen.</p>
+
+<p>The OR Set it was compared with was not optimised at all, but thanks to it&rsquo;s simplicity a rather good candidate, the gains on already optimised sets will likely be lower. (run with a <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorset2.erl">optimised OR Set</a> gave only 1 54% reduction in space instead of a 74% one with a normal OR Set).</p>
+
+<p>The downside is that garbage collection takes time, so does merging, so a structure like this is over all slower then a not garbage collected version</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-13T11:09:00+02:00" pubdate data-updated="true">Jun 13<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/crtd/'>CRTD</a>, <a class='category' href='/blog/categories/erlang/'>Erlang</a>, <a class='category' href='/blog/categories/riak/'>riak</a>, <a class='category' href='/blog/categories/riak-test/'>riak_test</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set/" data-via="heinz_gies" data-counturl="http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/" title="Previous Post: Asynchronous garbage collection with CRDTs">&laquo; Asynchronous garbage collection with CRDTs</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/01/01/backups-with-project-fifo/" title="Next Post: Backups with Project FiFo">Backups with Project FiFo &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">Asynchronous Garbage Collection With CRDTs</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/06/happy-birthday-project-fifo/">Happy Birthday Project FiFo</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/04/23/fifo-plus-80loc-of-bash-equals-5-node-riak-cluster/">FiFo + 80LOC of Bash = 5 Node Riak Cluster</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/Licenser">@Licenser</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'Licenser',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Heinz N. 'Licenser' Gies -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'lice';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set/';
+        var disqus_url = 'http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
