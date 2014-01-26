@@ -4,7 +4,7 @@
   <title><![CDATA[Category: SmartOS | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/smartos/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-01-01T14:27:11+01:00</updated>
+  <updated>2014-01-25T20:02:07-05:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Erlang and More DTrace]]></title>
     <link href="http://blog.licenser.net/blog/2013/01/28/erlang-and-more-dtrace/"/>
-    <updated>2013-01-28T18:33:00+01:00</updated>
+    <updated>2013-01-28T18:33:00-05:00</updated>
     <id>http://blog.licenser.net/blog/2013/01/28/erlang-and-more-dtrace</id>
     <content type="html"><![CDATA[<p>Some nice additions to the little Erlang DTrace demo. For once I&rsquo;ve added a filed to input custom scripts which are run on the server which is pretty neat since it allows running all kind of (l)quantize based scripts from the server and get a nice heatmap.</p>
 
@@ -63,7 +63,7 @@ erlang*:::function-return
   <entry>
     <title type="html"><![CDATA[Erlang and DTrace]]></title>
     <link href="http://blog.licenser.net/blog/2013/01/25/erlang-and-dtrace/"/>
-    <updated>2013-01-25T00:21:00+01:00</updated>
+    <updated>2013-01-25T00:21:00-05:00</updated>
     <id>http://blog.licenser.net/blog/2013/01/25/erlang-and-dtrace</id>
     <content type="html"><![CDATA[<p>As part of <a href="http://project-fifo.net">Project FiFo</a> I&rsquo;ve invested some time to research into DTrace and Erlang, not the probes that are there since some time but a DTrace consumer &ndash; letting you execute DTrace scripts from within Erlang and read the results.</p>
 
