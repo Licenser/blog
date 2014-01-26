@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Riak | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/riak/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-01-25T20:02:07-05:00</updated>
+  <updated>2014-01-25T20:02:38-05:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -800,7 +800,7 @@ cd $RT_BASE &amp;&amp; git add . &amp;&amp; git commit -am 'First build.'
 
 <p>We&rsquo;ll want to run it to see if <code>howl</code> is a good boy and does well to do so we&rsquo;ll need to get back into the <code>riak_test</code> folder and run the <code>riak_test</code> command:</p>
 
-<p><code>bashx
+<p><code>bash
 cd ~/Projects/riak_test
 ./riak_test -t tests/* -c howl -v -b none
 </code></p>

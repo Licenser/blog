@@ -99,7 +99,7 @@
   
 
 
-<time datetime="2014-01-01T12:15:37+01:00" pubdate data-updated="true">Jan 1<span>st</span>, 2014</time>
+<time datetime="2014-01-01T06:15:37-05:00" pubdate data-updated="true">Jan 1<span>st</span>, 2014</time>
         
       </p>
     
@@ -289,7 +289,7 @@
   
 
 
-<time datetime="2013-06-13T11:09:00+02:00" pubdate data-updated="true">Jun 13<span>th</span>, 2013</time>
+<time datetime="2013-06-13T11:09:00-04:00" pubdate data-updated="true">Jun 13<span>th</span>, 2013</time>
         
       </p>
     
@@ -461,7 +461,7 @@
   
 
 
-<time datetime="2013-06-11T15:45:00+02:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
+<time datetime="2013-06-11T15:45:00-04:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
         
       </p>
     
@@ -569,7 +569,7 @@
   
 
 
-<time datetime="2013-05-06T00:00:00+02:00" pubdate data-updated="true">May 6<span>th</span>, 2013</time>
+<time datetime="2013-05-06T00:00:00-04:00" pubdate data-updated="true">May 6<span>th</span>, 2013</time>
         
       </p>
     
@@ -664,7 +664,7 @@ better. That alone was worth every second of time invested.</p>
   
 
 
-<time datetime="2013-04-23T14:47:00+02:00" pubdate data-updated="true">Apr 23<span>rd</span>, 2013</time>
+<time datetime="2013-04-23T14:47:00-04:00" pubdate data-updated="true">Apr 23<span>rd</span>, 2013</time>
         
       </p>
     
@@ -917,7 +917,7 @@ better. That alone was worth every second of time invested.</p>
   
 
 
-<time datetime="2013-04-09T23:33:00+02:00" pubdate data-updated="true">Apr 9<span>th</span>, 2013</time>
+<time datetime="2013-04-09T23:33:00-04:00" pubdate data-updated="true">Apr 9<span>th</span>, 2013</time>
         
       </p>
     
@@ -1076,7 +1076,7 @@ better. That alone was worth every second of time invested.</p>
   
 
 
-<time datetime="2013-03-31T07:30:00+02:00" pubdate data-updated="true">Mar 31<span>st</span>, 2013</time>
+<time datetime="2013-03-31T07:30:00-04:00" pubdate data-updated="true">Mar 31<span>st</span>, 2013</time>
         
       </p>
     
@@ -1091,13 +1091,13 @@ better. That alone was worth every second of time invested.</p>
 
 <h2>What is riak_test?</h2>
 
-<p>So before we start a few words to <code>riak_test</code>. <code>riak_test</code> is a pretty nice framework for testing distributed applications, it is, just as about all other <code>riak_</code> stuff created by <a href="http://basho.com">Basho</a> and it is pretty darn awesome.</p>
+<p>So before we start; a few words to <code>riak_test</code>. <code>riak_test</code> is a pretty nice framework for testing distributed applications, it is, just as much as all the other <code>riak_</code> stuff created by <a href="http://basho.com">Basho</a>, pretty darn awesome.</p>
 
-<p>At it&rsquo;s current state it is very focused on testing <code>riak_kv</code> (or <code>riak</code> as in the database) but from a first glance a lot of functionality is very universal and after all <code>riak_core</code> is also build on top of <code>riak_core</code>, so modifying it to run with other <code>riak_core</code> based apps is pretty easy.</p>
+<p>At it&rsquo;s current state it is very focused on testing <code>riak_kv</code> (or <code>riak</code> as in the database) but from a first glance a lot of functionality is very universal and after all <code>riak_kv</code> is also built on top of <code>riak_core</code>, so modifying it to run with other <code>riak_core</code> based apps is pretty easy.</p>
 
 <h2>The setup</h2>
 
-<p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changed to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
+<p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changes to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1125,21 +1125,17 @@ better. That alone was worth every second of time invested.</p>
 </span><span class='line'>cd riak_test</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Now we branch of to have a place to get our howl application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
+<p>Now we branch off to have a place to get our <code>howl</code> application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git checkout riak_core
-</span><span class='line'>git branch howl
-</span><span class='line'>git checkout howl</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git branch howl && git checkout howl can be git checkout -b howl</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Okay that&rsquo;s it for the basic setup not that bad so far is it?</p>
 
 <h2>Configuration</h2>
 
-<p>Next thing we need to do is creating a configuration, at this point we assume you don&rsquo;t have any yet so we&rsquo;ll start from scratch, if you add more then one application later on you can just add them to an existing configuration.</p>
+<p>Next thing we need to do is create a configuration, at this point we&rsquo;ll assume you don&rsquo;t have one yet so we&rsquo;ll start from scratch, if you add more then one application later on you can just add them to an existing configuration.</p>
 
 <p><code>riak_test</code> looks for the configuration file <code>~/.riak_test.config</code> and reads all the data from there so we&rsquo;ll first need to copy the sample config there:</p>
 
@@ -1147,7 +1143,7 @@ better. That alone was worth every second of time invested.</p>
 </pre></td><td class='code'><pre><code class=''><span class='line'>cp riak_test.config.sample ~/.riak_test.config</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Next step is to open it in your favourite editor, you&rsquo;ll recognise it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
+<p>Next step is to open it in your favorite editor, you&rsquo;ll recognize it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
 
 <p>So lets go down to where it reads:</p>
 
@@ -1209,7 +1205,7 @@ better. That alone was worth every second of time invested.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>/Users/heinz/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
+<p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>~/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
 
 <ul>
 <li><code>test</code> &ndash; the most unstable branch.</li>
@@ -1218,7 +1214,7 @@ better. That alone was worth every second of time invested.</p>
 </ul>
 
 
-<p>This setup might not work for you at all, but since it are only path names it should be easy enough to adept the.</p>
+<p>This setup might not work for you at all, but since these are only path names it should be easy enough to adapt.</p>
 
 <p>Note that by default <code>riak_test</code> will run tests on the <code>current</code> environment</p>
 
@@ -1250,20 +1246,20 @@ better. That alone was worth every second of time invested.</p>
 </span><span class='line'>              <span class="c">%% This is the root of the built `rtdev&#39; repository,</span>
 </span><span class='line'>              <span class="c">%% used for manipulating the repo with git. All</span>
 </span><span class='line'>              <span class="c">%% versions should be inside this directory.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">root</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl&quot;</span><span class="p">},</span>
+</span><span class='line'>              <span class="p">{</span><span class="n">root</span><span class="p">,</span> <span class="s">&quot;~/rt/howl&quot;</span><span class="p">},</span>
 </span><span class='line'>
 </span><span class='line'>              <span class="c">%% The path to the `current&#39; version, which is used</span>
 </span><span class='line'>              <span class="c">%% exclusively except during upgrade tests.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">current</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-test&quot;</span><span class="p">},</span>
+</span><span class='line'>              <span class="p">{</span><span class="n">current</span><span class="p">,</span> <span class="s">&quot;~/rt/howl/howl-test&quot;</span><span class="p">},</span>
 </span><span class='line'>
 </span><span class='line'>              <span class="c">%% The path to the most immediately previous version</span>
 </span><span class='line'>              <span class="c">%% of the project, which is used when doing upgrade</span>
 </span><span class='line'>              <span class="c">%% tests.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">previous</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-dev&quot;</span><span class="p">},</span>
+</span><span class='line'>              <span class="p">{</span><span class="n">previous</span><span class="p">,</span> <span class="s">&quot;~/rt/howl/howl-dev&quot;</span><span class="p">},</span>
 </span><span class='line'>
 </span><span class='line'>              <span class="c">%% The path to the version before `previous&#39;, which</span>
 </span><span class='line'>              <span class="c">%% is used when doing upgrade tests.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">legacy</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-stable&quot;</span><span class="p">}</span>
+</span><span class='line'>              <span class="p">{</span><span class="n">legacy</span><span class="p">,</span> <span class="s">&quot;~/rt/howl/howl-stable&quot;</span><span class="p">}</span>
 </span><span class='line'>             <span class="p">]}</span>
 </span><span class='line'><span class="p">]}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -1317,20 +1313,20 @@ better. That alone was worth every second of time invested.</p>
 </span><span class='line'>                  <span class="c">%% This is the root of the built `rtdev&#39; repository,</span>
 </span><span class='line'>                  <span class="c">%% used for manipulating the repo with git. All</span>
 </span><span class='line'>                  <span class="c">%% versions should be inside this directory.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">root</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl&quot;</span><span class="p">},</span>
+</span><span class='line'>                  <span class="p">{</span><span class="n">root</span><span class="p">,</span> <span class="s">&quot;~/rt/howl&quot;</span><span class="p">},</span>
 </span><span class='line'>
 </span><span class='line'>                  <span class="c">%% The path to the `current&#39; version, which is used</span>
 </span><span class='line'>                  <span class="c">%% exclusively except during upgrade tests.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">current</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-test&quot;</span><span class="p">},</span>
+</span><span class='line'>                  <span class="p">{</span><span class="n">current</span><span class="p">,</span> <span class="s">&quot;~/rt/howl/howl-test&quot;</span><span class="p">},</span>
 </span><span class='line'>
 </span><span class='line'>                  <span class="c">%% The path to the most immediately previous version</span>
 </span><span class='line'>                  <span class="c">%% of the project, which is used when doing upgrade</span>
 </span><span class='line'>                  <span class="c">%% tests.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">previous</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-dev&quot;</span><span class="p">},</span>
+</span><span class='line'>                  <span class="p">{</span><span class="n">previous</span><span class="p">,</span> <span class="s">&quot;~/rt/howl/howl-dev&quot;</span><span class="p">},</span>
 </span><span class='line'>
 </span><span class='line'>                  <span class="c">%% The path to the version before `previous&#39;, which</span>
 </span><span class='line'>                  <span class="c">%% is used when doing upgrade tests.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">legacy</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-stable&quot;</span><span class="p">}</span>
+</span><span class='line'>                  <span class="p">{</span><span class="n">legacy</span><span class="p">,</span> <span class="s">&quot;~/rt/howl/howl-stable&quot;</span><span class="p">}</span>
 </span><span class='line'>                 <span class="p">]}</span>
 </span><span class='line'><span class="p">]}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -1338,14 +1334,14 @@ better. That alone was worth every second of time invested.</p>
 
 <h2>Setting up the application</h2>
 
-<p>We&rsquo;ve <code>riak_test</code> ready to test now next we need to prepare howl to be tested, we&rsquo;ll only look at the <code>current</code> (aka <code>test</code>) setup since the steps for others are pretty much the same.</p>
+<p>We&rsquo;ve got <code>riak_test</code> ready to test now next we need to prepare howl to be tested, we&rsquo;ll only look at the <code>current</code> (aka <code>test</code>) setup since the steps for others are pretty much the same.</p>
 
 <p>The first step is that we need the folder, so lets create it</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">howl</span>
-</span><span class='line'><span class="n">cd</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">howl</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p ~/rt/raw/howl
+</span><span class='line'><span class="nb">cd</span> ~/rt/raw/howl
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1354,45 +1350,20 @@ better. That alone was worth every second of time invested.</p>
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">git</span> <span class="n">clone</span> <span class="nn">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">project</span><span class="o">-</span><span class="n">fifo</span><span class="o">/</span><span class="n">howl</span><span class="p">.</span><span class="n">git</span> <span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">cd</span> <span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://github.com/project-fifo/howl.git howl-test
+</span><span class='line'><span class="nb">cd </span>howl-test
+</span><span class='line'>git checkout <span class="nb">test</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying the.</p>
+<p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying them.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">make</span> <span class="n">stagedevrel</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>make stagedevrel
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Now we&rsquo;ve to do a bit of a cheating, riak_text expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set up as git repositor.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span>
-</span><span class='line'><span class="n">cd</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span>
-</span><span class='line'><span class="n">git</span> <span class="n">init</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">cat</span> <span class="o">&lt;&lt;</span><span class="nv">EOF</span> <span class="o">&gt;</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span><span class="o">/</span><span class="p">.</span><span class="n">gitignore</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">bin</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">erts</span><span class="o">-*</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">lib</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">releases</span>
-</span><span class='line'><span class="nv">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now we need to link our devrel files and for my setup I&rsquo;ve to copy the <code>*.example</code> files of the <code>app.config</code> and <code>vm.args</code> into the right place they might be named differently for you.</p>
+<p>Now we&rsquo;ve got to do a bit of cheating, <code>riak_test</code> expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set it up as a git repository.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1407,18 +1378,47 @@ better. That alone was worth every second of time invested.</p>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">export</span> <span class="nv">RT_BASE</span><span class="o">=/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span><span class="o">/</span><span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">export</span> <span class="nv">RC_BASE</span><span class="o">=/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">howl</span><span class="o">/</span><span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">for</span> <span class="n">i</span> <span class="n">in</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span>
-</span><span class='line'><span class="n">do</span>
-</span><span class='line'>  <span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="sc">${</span><span class="nv">RT_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span>
-</span><span class='line'>  <span class="n">cd</span> <span class="sc">${</span><span class="nv">RT_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span>
-</span><span class='line'>  <span class="n">mkdir</span> <span class="n">data</span> <span class="n">etc</span>
-</span><span class='line'>  <span class="n">touch</span> <span class="n">data</span><span class="o">/</span><span class="p">.</span><span class="n">gitignore</span>
-</span><span class='line'>  <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="sc">${</span><span class="nv">RC_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">bin</span><span class="p">,</span><span class="n">erts</span><span class="o">-*</span><span class="p">,</span><span class="n">lib</span><span class="p">,</span><span class="n">releases</span><span class="p">}</span> <span class="p">.</span>
-</span><span class='line'>  <span class="n">cp</span> <span class="sc">${</span><span class="nv">RC_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">vm</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">example</span> <span class="n">etc</span><span class="o">/</span><span class="n">vm</span><span class="p">.</span><span class="n">args</span>
-</span><span class='line'>  <span class="n">cp</span> <span class="sc">${</span><span class="nv">RC_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">example</span> <span class="n">etc</span><span class="o">/</span><span class="n">app</span><span class="p">.</span><span class="n">config</span>
-</span><span class='line'><span class="n">done</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p ~/rt/howl
+</span><span class='line'><span class="nb">cd</span> ~/rt/howl
+</span><span class='line'>git init
+</span><span class='line'>
+</span><span class='line'>cat <span class="s">&lt;&lt;EOF &gt; ~/rt/howl/.gitignore</span>
+</span><span class='line'><span class="s">*/dev/*/bin</span>
+</span><span class='line'><span class="s">*/dev/*/erts-*</span>
+</span><span class='line'><span class="s">*/dev/*/lib</span>
+</span><span class='line'><span class="s">*/dev/*/releases</span>
+</span><span class='line'><span class="s">*/dev/*/share</span>
+</span><span class='line'><span class="s">*/dev/*/snmp</span>
+</span><span class='line'><span class="s">EOF</span>
+</span><span class='line'>git add .gitignore
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we need to link our devrel files. Since howl uses [cuttlefish] I have to copy the <code>howl.config.example</code> file to <code>howl.config</code> into <code>etc</code> directory, this may be different for your setup.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">RT_BASE</span><span class="o">=</span>~/rt/howl/howl-test
+</span><span class='line'><span class="nb">export </span><span class="nv">RC_BASE</span><span class="o">=</span>~/rt/raw/howl/howl-test
+</span><span class='line'><span class="k">for </span>i in 1 2 3 4
+</span><span class='line'><span class="k">do</span>
+</span><span class='line'><span class="k">  </span>mkdir -p <span class="k">${</span><span class="nv">RT_BASE</span><span class="k">}</span>/dev/dev<span class="k">${</span><span class="nv">i</span><span class="k">}</span>/
+</span><span class='line'>  <span class="nb">cd</span> <span class="k">${</span><span class="nv">RT_BASE</span><span class="k">}</span>/dev/dev<span class="k">${</span><span class="nv">i</span><span class="k">}</span>/
+</span><span class='line'>  mkdir data etc
+</span><span class='line'>  touch data/.gitignore
+</span><span class='line'>  ln -s <span class="k">${</span><span class="nv">RC_BASE</span><span class="k">}</span>/dev/dev<span class="k">${</span><span class="nv">i</span><span class="k">}</span>/<span class="o">{</span>bin,erts-*,lib,releases,share,snmp<span class="o">}</span> .
+</span><span class='line'>  cp <span class="k">${</span><span class="nv">RC_BASE</span><span class="k">}</span>/dev/dev<span class="k">${</span><span class="nv">i</span><span class="k">}</span>/etc/howl.conf.example etc/howl.conf
+</span><span class='line'><span class="k">done</span>
 </span><span class='line'>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -1426,6 +1426,13 @@ better. That alone was worth every second of time invested.</p>
 <p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie &ndash; I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
 
 <p>That&rsquo;s it.</p>
+
+<p>How add the content to the git repository you initiated and commit it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$RT_BASE</span> <span class="o">&amp;&amp;</span> git add . <span class="o">&amp;&amp;</span> git commit -am <span class="s1">&#39;First build.&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>Running a first test</h2>
 
@@ -1435,8 +1442,8 @@ better. That alone was worth every second of time invested.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">cd</span> <span class="err">~</span><span class="o">/</span><span class="nv">Projects</span><span class="o">/</span><span class="n">riak_test</span>
-</span><span class='line'><span class="p">.</span><span class="o">/</span><span class="n">riak_test</span> <span class="o">-</span><span class="n">t</span> <span class="n">tests</span><span class="o">/*</span> <span class="o">-</span><span class="n">c</span> <span class="n">howl</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">b</span> <span class="n">none</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/Projects/riak_test
+</span><span class='line'>./riak_test -t tests/* -c howl -v -b none
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -1481,7 +1488,7 @@ better. That alone was worth every second of time invested.</p>
   
 
 
-<time datetime="2013-03-19T16:45:00+01:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+<time datetime="2013-03-19T16:45:00-04:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
         
       </p>
     
@@ -1666,7 +1673,7 @@ better. That alone was worth every second of time invested.</p>
   
 
 
-<time datetime="2013-01-31T01:30:00+01:00" pubdate data-updated="true">Jan 31<span>st</span>, 2013</time>
+<time datetime="2013-01-31T01:30:00-05:00" pubdate data-updated="true">Jan 31<span>st</span>, 2013</time>
         
       </p>
     
@@ -1730,7 +1737,7 @@ better. That alone was worth every second of time invested.</p>
   
 
 
-<time datetime="2013-01-28T18:33:00+01:00" pubdate data-updated="true">Jan 28<span>th</span>, 2013</time>
+<time datetime="2013-01-28T18:33:00-05:00" pubdate data-updated="true">Jan 28<span>th</span>, 2013</time>
         
       </p>
     
