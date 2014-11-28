@@ -4,7 +4,7 @@
   <title><![CDATA[Category: CRTD | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/crtd/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-28T19:24:17+01:00</updated>
+  <updated>2014-01-25T20:03:20-05:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[A Asynchronously GCed or Set]]></title>
     <link href="http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set/"/>
-    <updated>2013-06-13T11:09:00+02:00</updated>
+    <updated>2013-06-13T11:09:00-04:00</updated>
     <id>http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set</id>
     <content type="html"><![CDATA[<p>Following the <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">article about Asynchronous garbage collection with CRDTs</a> I experimented with <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorsetg.erl">implementing the concept</a>. The OR Set is a very nice data structure for this  since it&rsquo;s rather simple and so is it&rsquo;s garbage!</p>
 
@@ -132,7 +132,7 @@ src/vorsetg.erl:389:&lt;0.135.0&gt;: [ OP ] Cnt: 344708, Avg: 38.539, Min: 0,   
   <entry>
     <title type="html"><![CDATA[Asynchronous Garbage Collection With CRDTs]]></title>
     <link href="http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/"/>
-    <updated>2013-06-11T15:45:00+02:00</updated>
+    <updated>2013-06-11T15:45:00-04:00</updated>
     <id>http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts</id>
     <content type="html"><![CDATA[<p>So CRDTs are very very nice data structures awesome for eventual consistent applications like riak, or the components of <a href="http://project-fifo.net">Project-FiFo</a>. So they have one big drawback, most of them collect garbage, and over time that can sum up to a lot making them pretty unpractical in many cases. Collecting this garbage is a bit tricky, since usually it means synchronising the data &ndash; which going back to the eventual consistent stuff prevents either A or P.</p>
 
