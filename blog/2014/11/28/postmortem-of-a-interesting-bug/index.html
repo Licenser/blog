@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Postmortom of a Interesting Bug - Lice!</title>
+  <title>Postmortem of a Interesting Bug - Lice!</title>
   <meta name="author" content="Heinz N. 'Licenser' Gies">
 
   
-  <meta name="description" content="Symptoms After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small &hellip;">
+  <meta name="description" content="Symptoms≤ After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug">
+  <link rel="canonical" href="http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Lice!" type="application/atom+xml">
@@ -80,7 +80,7 @@
   
   <header>
     
-      <h1 class="entry-title">Postmortom of a Interesting Bug</h1>
+      <h1 class="entry-title">Postmortem of a Interesting Bug</h1>
     
     
       <p class="meta">
@@ -103,63 +103,63 @@
   </header>
 
 
-<div class="entry-content"><h2>Symptoms</h2>
+<div class="entry-content"><h2>Symptoms≤</h2>
 
 <p>After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small percentage of the VM&rsquo;s stored in FiFo lost information which package was assigned to them and which organization they belong to.</p>
 
 <h2>Technical background</h2>
 
-<p>As part of planned maintenance on the switching layer the entire network was taken down. Effectively cutting the communication between any two systems in the network.  During the maintenance the FiFo system was kept &lsquo;hot&rsquo;, no services disabled or paused. At the end of the maintenance window the network was as planned enabled again, reinstating communications.</p>
+<p>As part of planned maintenance on the switching layer the entire network was taken down. Effectively cutting the communication between any two systems in the network.  During the maintenance the FiFo system was kept &ldquo;hot&rdquo;, no services disabled or paused. At the end of the maintenance window the network was as planned enabled again, reinstating communications.</p>
 
 <h2>FiFo background</h2>
 
-<p>We will focus in the sniffle and chunter components since those are the relevant parts of sniffle that handle information related to the symptoms.</p>
-
-<p>Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolution and nearly loss free merging even of entirely devergent data.</p>
+<p>We will focus in the sniffle and chunter components since those are the relevant parts of sniffle that handle information related to the symptoms.
+¯
+Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolution and nearly loss free merging even of entirely divergent data.</p>
 
 <h3>Sniffle</h3>
 
 <p>Sniffle is a distributed system that runs on top of riak_core, all (7) nodes are connected as a mash network via distributed erlang. While the nodes are connected data and functionality is split out in dynamo fashion, at a default N value of 3 that means every node handles (total data)*3/7 of the data.</p>
 
-<p>In the case of a node failure the adjacent node takes over the function of the failed node. Missing data is resolved by a method called &lsquo;read repair&rsquo;, meaning taht when data is requested and 1 out of the 3 nodes responds with no data that &lsquo;missing&rsquo; data is repaired.</p>
+<p>In the case of a node failure the adjacent node takes over the function of the failed node. Missing data is resolved by a method called &ldquo;read repair&rdquo;, meaning that when data is requested and 1 out of the 3 nodes responds with no data that &ldquo;missing&rdquo; data is repaired.</p>
 
-<p>Once the node failure is repaird the system that took over the work for the failed node performs what is called a handoff, sending it&rsquo;s (suposedly) updated data to the returning node to bring it up to speed.</p>
+<p>Once the node failure is repaired the system that took over the work for the failed node performs what is called a handoff, sending it&rsquo;s (supposedly) updated data to the returning node to bring it up to speed.</p>
 
 <h3>Chunter</h3>
 
-<p>Under normal conditions chunter will send incremental updates about changing vm state to sniffle. If a chunter system for the first time connects to sniffle it will register it&rsquo;s VM&rsquo;s, meaning they are created if not existant, and assigned to the hypervisor. The registration contains nearly all relevent VM information with some exceptions that do not concern the hypervisor. The missing information was amongst the not updated information.</p>
+<p>Under normal conditions chunter will send incremental updates about changing vm state to sniffle. If a chunter system for the first time connects to sniffle it will register it&rsquo;s VM&rsquo;s, meaning they are created if not existent, and assigned to the hypervisor. The registration contains nearly all relevant VM information with some exceptions that do not concern the hypervisor. The missing information was amongst the not updated information.</p>
 
-<p>Sniffle nodes are discovered via mdns broadcasts, the first broadcast recived will trigger the inital registration sending the request to this node.</p>
+<p>Sniffle nodes are discovered via mDNS broadcasts, the first broadcast received will trigger the initial registration sending the request to this node.</p>
 
 <h2>What happened?</h2>
 
-<p>It is a combination of conditions that lead to the problem and explains why  only a small percentage of VM&rsquo;s was affected.</p>
+<p>It is a combination of conditions that lead to the problem and explains why  only a small percentage of VM&rsquo;s were affected.</p>
 
 <h3>During the outage</h3>
 
-<p>1) The network outage cut the communicaiton between <strong>all</strong> sniffle nodes, so each node was on it&rsquo;s own handeling the full load of the requests.
-2) The network outage cut communication of <strong>nearly all</strong> chunter nodes, only those who resided on a hypervisor that also contained a fifo zone did not loose conectivity.</p>
+<p>1) The network outage cut the communication between <strong>all</strong> sniffle nodes, so each node was on its own handling the full load of the requests.
+2) The network outage cut communication of <strong>nearly all</strong> chunter nodes, only those who resided on a hypervisor that also contained a fifo zone did not loose connectivity.</p>
 
 <h3>After the outage</h3>
 
-<p>Now there happend a race condition, on one side the distributed erlang started to re-discover the other nodes, reistablising communicaiton in sniffle and initializing handoffs (handoffs of nearly all parts).</p>
+<p>Now there happened a race condition, on one side the distributed erlang started to re-discover the other nodes, reestablishing communication in sniffle and initializing handoffs (handoffs of nearly all parts).</p>
 
 <p>On the other side the periodic mDNS broadcasts from the sniffle nodes triggered re-registration of the chunter nodes.</p>
 
 <h3>The bug</h3>
 
-<p>The bug was triggered by the fact that during reciving a handoff a vnode took the wrong assumption that the recived data must be newer then it&rsquo;s own and overwrite the currently stored data instead of merging it.</p>
+<p>The bug was triggered by the fact that during receiving a handoff a vnode took the wrong assumption that the received data must be newer then its own and overwrite the currently stored data instead of merging it.</p>
 
-<p>Due to the usual repair during reads this turned out to be qutie a edge case that was only triggered when:</p>
+<p>Due to the usual repair during reads this turned out to be quite an edge case that was only triggered when:</p>
 
-<p>1) the mDNS was recived from a node that neither holds the right partition, neither is connected to a node holding the right partition.
-2) the registration happend to three vnodes that did not hold that data since as long as one node held the data it would have been merged with this instead of re-created
-3) the handoff on all three systems was performed before any read happend, since the read-repair would haver otherwise merged the data.
-4) the handoff off all three systems was performed before AAE triggered, since AAE triggers a read-repair on inconsistant data.</p>
+<p>1) The mDNS was received from a node that neither holds the right partition, neither is connected to a node holding the right partition.
+2) the registration happened to three vnodes that did not hold that data since as long as one node held the data it would have been merged with this instead of re-created
+3) The handoff on all three systems was performed before any read happened, since the read-repair would haver otherwise merged the data.
+4) The handoff off all three systems was performed before AAE triggered, since AAE triggers a read-repair on inconsistent data.</p>
 
 <h2>The fix</h2>
 
-<p>This was fixed rather simle, instead of overwriting existing data on a handoff, the handoff is now treated as a read-repair and old and existing data is merged.</p>
+<p>This was fixed rather simple, instead of overwriting existing data on a handoff, the handoff is now treated as a read-repair and old and existing data is merged.</p>
 </div>
 
 
@@ -190,7 +190,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug/" data-via="heinz_gies" data-counturl="http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug/" data-via="heinz_gies" data-counturl="http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug/" >Tweet</a>
   
   
   
@@ -199,7 +199,7 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/02/02/postmortem-of-a-interesting-bug/" title="Previous Post: Post-mortem of a failed support case.">&laquo; Post-mortem of a failed support case.</a>
+        <a class="basic-alignment left" href="/blog/2014/02/02/post-mortem-of-a-failed-support-case/" title="Previous Post: Post-mortem of a failed support case.">&laquo; Post-mortem of a failed support case.</a>
       
       
     </p>
@@ -221,11 +221,11 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2014/11/28/postmortom-of-a-interesting-bug/">Postmortom of a Interesting Bug</a>
+        <a href="/blog/2014/11/28/postmortem-of-a-interesting-bug/">Postmortem of a Interesting Bug</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/02/02/postmortem-of-a-interesting-bug/">Post-mortem of a Failed Support Case.</a>
+        <a href="/blog/2014/02/02/post-mortem-of-a-failed-support-case/">Post-mortem of a Failed Support Case.</a>
       </li>
     
       <li class="post">
@@ -295,8 +295,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug/';
-        var disqus_url = 'http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug/';
+        var disqus_identifier = 'http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug/';
+        var disqus_url = 'http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug/';
         var disqus_script = 'embed.js';
       
     (function () {

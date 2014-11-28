@@ -9,7 +9,7 @@
   <meta name="author" content="Heinz N. 'Licenser' Gies">
 
   
-  <meta name="description" content="Symptoms After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small &hellip;">
+  <meta name="description" content="Symptoms≤ After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -83,7 +83,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2014/11/28/postmortom-of-a-interesting-bug/">Postmortom of a Interesting Bug</a></h1>
+      <h1 class="entry-title"><a href="/blog/2014/11/28/postmortem-of-a-interesting-bug/">Postmortem of a Interesting Bug</a></h1>
     
     
       <p class="meta">
@@ -106,63 +106,63 @@
   </header>
 
 
-  <div class="entry-content"><h2>Symptoms</h2>
+  <div class="entry-content"><h2>Symptoms≤</h2>
 
 <p>After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small percentage of the VM&rsquo;s stored in FiFo lost information which package was assigned to them and which organization they belong to.</p>
 
 <h2>Technical background</h2>
 
-<p>As part of planned maintenance on the switching layer the entire network was taken down. Effectively cutting the communication between any two systems in the network.  During the maintenance the FiFo system was kept &lsquo;hot&rsquo;, no services disabled or paused. At the end of the maintenance window the network was as planned enabled again, reinstating communications.</p>
+<p>As part of planned maintenance on the switching layer the entire network was taken down. Effectively cutting the communication between any two systems in the network.  During the maintenance the FiFo system was kept &ldquo;hot&rdquo;, no services disabled or paused. At the end of the maintenance window the network was as planned enabled again, reinstating communications.</p>
 
 <h2>FiFo background</h2>
 
-<p>We will focus in the sniffle and chunter components since those are the relevant parts of sniffle that handle information related to the symptoms.</p>
-
-<p>Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolution and nearly loss free merging even of entirely devergent data.</p>
+<p>We will focus in the sniffle and chunter components since those are the relevant parts of sniffle that handle information related to the symptoms.
+¯
+Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolution and nearly loss free merging even of entirely divergent data.</p>
 
 <h3>Sniffle</h3>
 
 <p>Sniffle is a distributed system that runs on top of riak_core, all (7) nodes are connected as a mash network via distributed erlang. While the nodes are connected data and functionality is split out in dynamo fashion, at a default N value of 3 that means every node handles (total data)*3/7 of the data.</p>
 
-<p>In the case of a node failure the adjacent node takes over the function of the failed node. Missing data is resolved by a method called &lsquo;read repair&rsquo;, meaning taht when data is requested and 1 out of the 3 nodes responds with no data that &lsquo;missing&rsquo; data is repaired.</p>
+<p>In the case of a node failure the adjacent node takes over the function of the failed node. Missing data is resolved by a method called &ldquo;read repair&rdquo;, meaning that when data is requested and 1 out of the 3 nodes responds with no data that &ldquo;missing&rdquo; data is repaired.</p>
 
-<p>Once the node failure is repaird the system that took over the work for the failed node performs what is called a handoff, sending it&rsquo;s (suposedly) updated data to the returning node to bring it up to speed.</p>
+<p>Once the node failure is repaired the system that took over the work for the failed node performs what is called a handoff, sending it&rsquo;s (supposedly) updated data to the returning node to bring it up to speed.</p>
 
 <h3>Chunter</h3>
 
-<p>Under normal conditions chunter will send incremental updates about changing vm state to sniffle. If a chunter system for the first time connects to sniffle it will register it&rsquo;s VM&rsquo;s, meaning they are created if not existant, and assigned to the hypervisor. The registration contains nearly all relevent VM information with some exceptions that do not concern the hypervisor. The missing information was amongst the not updated information.</p>
+<p>Under normal conditions chunter will send incremental updates about changing vm state to sniffle. If a chunter system for the first time connects to sniffle it will register it&rsquo;s VM&rsquo;s, meaning they are created if not existent, and assigned to the hypervisor. The registration contains nearly all relevant VM information with some exceptions that do not concern the hypervisor. The missing information was amongst the not updated information.</p>
 
-<p>Sniffle nodes are discovered via mdns broadcasts, the first broadcast recived will trigger the inital registration sending the request to this node.</p>
+<p>Sniffle nodes are discovered via mDNS broadcasts, the first broadcast received will trigger the initial registration sending the request to this node.</p>
 
 <h2>What happened?</h2>
 
-<p>It is a combination of conditions that lead to the problem and explains why  only a small percentage of VM&rsquo;s was affected.</p>
+<p>It is a combination of conditions that lead to the problem and explains why  only a small percentage of VM&rsquo;s were affected.</p>
 
 <h3>During the outage</h3>
 
-<p>1) The network outage cut the communicaiton between <strong>all</strong> sniffle nodes, so each node was on it&rsquo;s own handeling the full load of the requests.
-2) The network outage cut communication of <strong>nearly all</strong> chunter nodes, only those who resided on a hypervisor that also contained a fifo zone did not loose conectivity.</p>
+<p>1) The network outage cut the communication between <strong>all</strong> sniffle nodes, so each node was on its own handling the full load of the requests.
+2) The network outage cut communication of <strong>nearly all</strong> chunter nodes, only those who resided on a hypervisor that also contained a fifo zone did not loose connectivity.</p>
 
 <h3>After the outage</h3>
 
-<p>Now there happend a race condition, on one side the distributed erlang started to re-discover the other nodes, reistablising communicaiton in sniffle and initializing handoffs (handoffs of nearly all parts).</p>
+<p>Now there happened a race condition, on one side the distributed erlang started to re-discover the other nodes, reestablishing communication in sniffle and initializing handoffs (handoffs of nearly all parts).</p>
 
 <p>On the other side the periodic mDNS broadcasts from the sniffle nodes triggered re-registration of the chunter nodes.</p>
 
 <h3>The bug</h3>
 
-<p>The bug was triggered by the fact that during reciving a handoff a vnode took the wrong assumption that the recived data must be newer then it&rsquo;s own and overwrite the currently stored data instead of merging it.</p>
+<p>The bug was triggered by the fact that during receiving a handoff a vnode took the wrong assumption that the received data must be newer then its own and overwrite the currently stored data instead of merging it.</p>
 
-<p>Due to the usual repair during reads this turned out to be qutie a edge case that was only triggered when:</p>
+<p>Due to the usual repair during reads this turned out to be quite an edge case that was only triggered when:</p>
 
-<p>1) the mDNS was recived from a node that neither holds the right partition, neither is connected to a node holding the right partition.
-2) the registration happend to three vnodes that did not hold that data since as long as one node held the data it would have been merged with this instead of re-created
-3) the handoff on all three systems was performed before any read happend, since the read-repair would haver otherwise merged the data.
-4) the handoff off all three systems was performed before AAE triggered, since AAE triggers a read-repair on inconsistant data.</p>
+<p>1) The mDNS was received from a node that neither holds the right partition, neither is connected to a node holding the right partition.
+2) the registration happened to three vnodes that did not hold that data since as long as one node held the data it would have been merged with this instead of re-created
+3) The handoff on all three systems was performed before any read happened, since the read-repair would haver otherwise merged the data.
+4) The handoff off all three systems was performed before AAE triggered, since AAE triggers a read-repair on inconsistent data.</p>
 
 <h2>The fix</h2>
 
-<p>This was fixed rather simle, instead of overwriting existing data on a handoff, the handoff is now treated as a read-repair and old and existing data is merged.</p>
+<p>This was fixed rather simple, instead of overwriting existing data on a handoff, the handoff is now treated as a read-repair and old and existing data is merged.</p>
 </div>
   
   
@@ -175,7 +175,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2014/02/02/postmortem-of-a-interesting-bug/">Post-mortem of a Failed Support Case.</a></h1>
+      <h1 class="entry-title"><a href="/blog/2014/02/02/post-mortem-of-a-failed-support-case/">Post-mortem of a Failed Support Case.</a></h1>
     
     
       <p class="meta">
@@ -200,7 +200,7 @@
 
   <div class="entry-content"><p>Every now and then I check the link reports for Project FiFo to see what people think and write about it. Recently I stumbled about <a href="http://consulting.miracleas.dk/blog/post/2014/01/17/Quick-and-Dirty-spawned-LightlyCloudy!.aspx">an article</a> that oddly enough made me both proud and sad. It actually was a rather negative one, which is a shame, but on the other hand a project isn&rsquo;t mature until people care enough to complain.</p>
 
-<p>Yet even so it would be very easy to cast this aside as a &lsquo;success&rsquo; in a strange manner, it still bothers me that someone is upset enough with FiFo to spend his time writing a longish blog article and write their own management software. I do take great pride in the fact that we do our best to have a outstanding documentation and a good support for users of FiFo, and I dare to say so does anyone else who is involved in the project.</p>
+<p>Yet even so it would be very easy to cast this aside as a &lsquo;success&rsquo; in a strange manner, it still bothers me that someone is upset enough with FiFo to spend his time writing a longish blog article and write their own management software. I do take great pride in the fact that we do our best to have an outstanding documentation and a good support for users of FiFo, and I dare to say so does anyone else who is involved in the project.</p>
 
 <p>So armed with the full history of events  plus the additional background from the <a href="http://consulting.miracleas.dk/blog/post/2014/01/17/Quick-and-Dirty-spawned-LightlyCloudy!.aspx">article</a> mentioned above I want to try a post mortal analysis of this support case, what went wrong and how it could be avoided. I obviously will try to be as impartial as I can be but in the end I can only look at what I see. Hopefully there is a lesson to be learned from this so next time things went smoother.</p>
 
@@ -212,7 +212,7 @@
 
 <p>Sadly the initial mail gives every little to no information on the problem aside that &lsquo;not firing on all cylinders/Suddenly FiFo stopped working all by it self&rsquo;. I must admit that for me such a thing is a big red flag that the person on the other end does not care much or is not willing to invest energy into finding the problem, looking from today and after reading the articles on Gordon&rsquo;s blog it might as well just have been the kind of humor used, we will never know.</p>
 
-<p>But fortunately I am not the only one on the mailing list and others are slower to judge and have more patience and Mark jumped in to help and tried to help, starting to ask for additional information that were missing from the original mail. After the information not showing any additional evidence that could lead to a easy conclusion Marks ask for him to take a look at <a href="http://project-fifo.net/pages/viewpage.action?pageId=8126470">FiFo&rsquo;s Problem Checklist</a> and come to the IRC channel to help further.</p>
+<p>But fortunately I am not the only one on the mailing list and others are slower to judge and have more patience and Mark jumped in to help and tried to help, starting to ask for additional information that were missing from the original mail. After the information not showing any additional evidence that could lead to an easy conclusion Marks ask for him to take a look at <a href="http://project-fifo.net/pages/viewpage.action?pageId=8126470">FiFo&rsquo;s Problem Checklist</a> and come to the IRC channel to help further.</p>
 
 <h2>Act 3 conclusion</h2>
 
@@ -220,11 +220,11 @@
 
 <p>Since I can actually look into my head I shed a bit more light on my take at the point, I decided to opt out of that request at that moment since Mark seemed to have it covered and the tone of the mail already made me sort it in a bucket of &lsquo;going to be annoying&rsquo;. So I probably should not judge as fast.</p>
 
-<p>To receive the best possible support there are some things Gordon could have done, the initial mail could have contained more information, the tone could have been different &ndash; jokes often communicate badly over written text, and following Marks request to go through the checklist had probably helped too if only to get some additional facts for later.</p>
+<p>To receive the best possible support there are some things Gordon could have done, the initial mail could have contained more information, the tone could have been different — jokes often communicate badly over written text, and following Marks request to go through the checklist had probably helped too if only to get some additional facts for later.</p>
 
 <h1>Act 4 &ndash; IRC</h1>
 
-<p>Marks suggested to swap to IRC for a quicker communication, we all hate mail ping pong I guess. Fortunately we <a href="http://echelog.com/logs/browse/project-fifo/1382914800">keep logs</a> of the FiFo channel to make it easy to google for known problems that were discussed before &ndash; in this case it allows us to look at the conversation between Mark (aka trentster) and Gordon (g-flemming).</p>
+<p>Marks suggested to swap to IRC for a quicker communication, we all hate mail ping pong I guess. Fortunately we <a href="http://echelog.com/logs/browse/project-fifo/1382914800">keep logs</a> of the FiFo channel to make it easy to google for known problems that were discussed before — in this case it allows us to look at the conversation between Mark (aka trentster) and Gordon (g-flemming).</p>
 
 <p>This is pretty uneventful mark asks a few more questions to rule out common errors none of which seem to be the cause. At this point Mark asks to escalate the issue and file a ticket with the logs and offers the suggestion to move to a newer version of FiFo (the development build at that time) along with <a href="http://project-fifo.net/pages/viewpage.action?pageId=7176245">the manual containing steps necessary to do this</a>. The reasoning being that the development build is quite well tested with multiple people (including Mark and myself) running it.</p>
 
@@ -236,7 +236,7 @@
 
 <p>On the channel Gordon mentions the first time that he is running FiFo with customer on it this indicates some urgency on the matter and at least I missed that line. Sadly so he did not seem to have went through the troubleshooting steps or read the update documentation.</p>
 
-<p>The lesson to learn here for us is to either ask people to include a IRC log in a new ticket or do it ourselves after they create it, this might have added some additional info to the ticket that was not present when it was created.</p>
+<p>The lesson to learn here for us is to either ask people to include an IRC log in a new ticket or do it ourselves after they create it, this might have added some additional info to the ticket that was not present when it was created.</p>
 
 <h1>Act 5 &ndash; The ticketing system</h1>
 
@@ -252,11 +252,11 @@
 
 <h2>Act 5 conclusion</h2>
 
-<p>I need to stop drawing conclusions so quickly and read bug requests more carefully or I would not have missed the migration question in the bug report. It would also be worth a try not to treat less urgent tickets with less care, it sucks to have tickets open the goal should be to close (as in resolve) then as soon as possible even if they seem not urgent &ndash; this applies especially to bugs.</p>
+<p>I need to stop drawing conclusions so quickly and read bug requests more carefully or I would not have missed the migration question in the bug report. It would also be worth a try not to treat less urgent tickets with less care, it sucks to have tickets open the goal should be to close (as in resolve) then as soon as possible even if they seem not urgent — this applies especially to bugs.</p>
 
-<p>Gordon could have made his own life a lot easier by including more information in the ticket, noting that it is a urgent issue, including the history of what he already did to debug would have both helped a lot. In addition to that actually reading the documentation Mark provided would have answered the migration question beforehand.</p>
+<p>Gordon could have made his own life a lot easier by including more information in the ticket, noting that it is an urgent issue, including the history of what he already did to debug would have both helped a lot. In addition to that actually reading the documentation Mark provided would have answered the migration question beforehand.</p>
 
-<p>Mark while out of the picture already could have included the chat history in the ticket when seeing that Gordon did not &ndash; this admittedly is asking a lot.</p>
+<p>Mark while out of the picture already could have included the chat history in the ticket when seeing that Gordon did not — this admittedly is asking a lot.</p>
 
 <h1>Act 0 &ndash; how everything started</h1>
 
@@ -1902,11 +1902,11 @@ better. That alone was worth every second of time invested.</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2014/11/28/postmortom-of-a-interesting-bug/">Postmortom of a Interesting Bug</a>
+        <a href="/blog/2014/11/28/postmortem-of-a-interesting-bug/">Postmortem of a Interesting Bug</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/02/02/postmortem-of-a-interesting-bug/">Post-mortem of a Failed Support Case.</a>
+        <a href="/blog/2014/02/02/post-mortem-of-a-failed-support-case/">Post-mortem of a Failed Support Case.</a>
       </li>
     
       <li class="post">
