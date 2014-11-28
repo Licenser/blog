@@ -4,7 +4,7 @@
   <title><![CDATA[Lice!]]></title>
   <link href="http://blog.licenser.net/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-28T21:37:19+01:00</updated>
+  <updated>2014-11-28T21:38:41+01:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -18,7 +18,7 @@
     <link href="http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug/"/>
     <updated>2014-11-28T19:20:34+01:00</updated>
     <id>http://blog.licenser.net/blog/2014/11/28/postmortem-of-a-interesting-bug</id>
-    <content type="html"><![CDATA[<h2>Symptoms≤</h2>
+    <content type="html"><![CDATA[<h2>Symptoms</h2>
 
 <p>After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small percentage of the VM&rsquo;s stored in FiFo lost information which package was assigned to them and which organization they belong to.</p>
 
