@@ -4,7 +4,7 @@
   <title><![CDATA[Lice!]]></title>
   <link href="http://blog.licenser.net/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-01-01T14:27:11+01:00</updated>
+  <updated>2014-11-28T19:21:41+01:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -12,6 +12,194 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Postmortom of a Interesting Bug]]></title>
+    <link href="http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug/"/>
+    <updated>2014-11-28T19:20:34+01:00</updated>
+    <id>http://blog.licenser.net/blog/2014/11/28/postmortom-of-a-interesting-bug</id>
+    <content type="html"><![CDATA[<h2>Symptoms</h2>
+
+<p>After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small percentage of the VM&rsquo;s stored in FiFo lost information which package was assigned to them and which organization they belong to.</p>
+
+<h2>Technical background</h2>
+
+<p>As part of planned maintenance on the switching layer the entire network was taken down. Effectively cutting the communication between any two systems in the network.  During the maintenance the FiFo system was kept &lsquo;hot&rsquo;, no services disabled or paused. At the end of the maintenance window the network was as planned enabled again, reinstating communications.</p>
+
+<h2>FiFo background</h2>
+
+<p>We will focus in the sniffle and chunter components since those are the relevant parts of sniffle that handle information related to the symptoms.</p>
+
+<p>Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolution and nearly loss free merging even of entirely devergent data.</p>
+
+<h3>Sniffle</h3>
+
+<p>Sniffle is a distributed system that runs on top of riak_core, all (7) nodes are connected as a mash network via distributed erlang. While the nodes are connected data and functionality is split out in dynamo fashion, at a default N value of 3 that means every node handles (total data)*3/7 of the data.</p>
+
+<p>In the case of a node failure the adjacent node takes over the function of the failed node. Missing data is resolved by a method called &lsquo;read repair&rsquo;, meaning taht when data is requested and 1 out of the 3 nodes responds with no data that &lsquo;missing&rsquo; data is repaired.</p>
+
+<p>Once the node failure is repaird the system that took over the work for the failed node performs what is called a handoff, sending it&rsquo;s (suposedly) updated data to the returning node to bring it up to speed.</p>
+
+<h3>Chunter</h3>
+
+<p>Under normal conditions chunter will send incremental updates about changing vm state to sniffle. If a chunter system for the first time connects to sniffle it will register it&rsquo;s VM&rsquo;s, meaning they are created if not existant, and assigned to the hypervisor. The registration contains nearly all relevent VM information with some exceptions that do not concern the hypervisor. The missing information was amongst the not updated information.</p>
+
+<p>Sniffle nodes are discovered via mdns broadcasts, the first broadcast recived will trigger the inital registration sending the request to this node.</p>
+
+<h2>What happened?</h2>
+
+<p>It is a combination of conditions that lead to the problem and explains why  only a small percentage of VM&rsquo;s was affected.</p>
+
+<h3>During the outage</h3>
+
+<p>1) The network outage cut the communicaiton between <strong>all</strong> sniffle nodes, so each node was on it&rsquo;s own handeling the full load of the requests.
+2) The network outage cut communication of <strong>nearly all</strong> chunter nodes, only those who resided on a hypervisor that also contained a fifo zone did not loose conectivity.</p>
+
+<h3>After the outage</h3>
+
+<p>Now there happend a race condition, on one side the distributed erlang started to re-discover the other nodes, reistablising communicaiton in sniffle and initializing handoffs (handoffs of nearly all parts).</p>
+
+<p>On the other side the periodic mDNS broadcasts from the sniffle nodes triggered re-registration of the chunter nodes.</p>
+
+<h3>The bug</h3>
+
+<p>The bug was triggered by the fact that during reciving a handoff a vnode took the wrong assumption that the recived data must be newer then it&rsquo;s own and overwrite the currently stored data instead of merging it.</p>
+
+<p>Due to the usual repair during reads this turned out to be qutie a edge case that was only triggered when:</p>
+
+<p>1) the mDNS was recived from a node that neither holds the right partition, neither is connected to a node holding the right partition.
+2) the registration happend to three vnodes that did not hold that data since as long as one node held the data it would have been merged with this instead of re-created
+3) the handoff on all three systems was performed before any read happend, since the read-repair would haver otherwise merged the data.
+4) the handoff off all three systems was performed before AAE triggered, since AAE triggers a read-repair on inconsistant data.</p>
+
+<h2>The fix</h2>
+
+<p>This was fixed rather simle, instead of overwriting existing data on a handoff, the handoff is now treated as a read-repair and old and existing data is merged.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Post-mortem of a Failed Support Case.]]></title>
+    <link href="http://blog.licenser.net/blog/2014/02/02/post-mortem-of-a-failed-support-case/"/>
+    <updated>2014-02-02T05:27:27+01:00</updated>
+    <id>http://blog.licenser.net/blog/2014/02/02/post-mortem-of-a-failed-support-case</id>
+    <content type="html"><![CDATA[<p>Every now and then I check the link reports for Project FiFo to see what people think and write about it. Recently I stumbled about <a href="http://consulting.miracleas.dk/blog/post/2014/01/17/Quick-and-Dirty-spawned-LightlyCloudy!.aspx">an article</a> that oddly enough made me both proud and sad. It actually was a rather negative one, which is a shame, but on the other hand a project isn&rsquo;t mature until people care enough to complain.</p>
+
+<p>Yet even so it would be very easy to cast this aside as a &lsquo;success&rsquo; in a strange manner, it still bothers me that someone is upset enough with FiFo to spend his time writing a longish blog article and write their own management software. I do take great pride in the fact that we do our best to have a outstanding documentation and a good support for users of FiFo, and I dare to say so does anyone else who is involved in the project.</p>
+
+<p>So armed with the full history of events  plus the additional background from the <a href="http://consulting.miracleas.dk/blog/post/2014/01/17/Quick-and-Dirty-spawned-LightlyCloudy!.aspx">article</a> mentioned above I want to try a post mortal analysis of this support case, what went wrong and how it could be avoided. I obviously will try to be as impartial as I can be but in the end I can only look at what I see. Hopefully there is a lesson to be learned from this so next time things went smoother.</p>
+
+<p>As a disclaimer: the problem is still a mystery and will probably remain so forever. Also all documentation linked is from the time the bug was filed (thanks for versioning) to give a fair picture of what was available back then.</p>
+
+<h1>Act 3 &ndash; the mailing list</h1>
+
+<p>The history of this case starts a bit into the history of the whole story, but for now lets skip the first part and look at the first time we (as in the FiFo team) came aware of the problem: <a href="https://groups.google.com/forum/#!topic/project-fifo/MZJYOs-CtP8">A mail to the mailing list and the conversation following it</a>.</p>
+
+<p>Sadly the initial mail gives every little to no information on the problem aside that &lsquo;not firing on all cylinders/Suddenly FiFo stopped working all by it self&rsquo;. I must admit that for me such a thing is a big red flag that the person on the other end does not care much or is not willing to invest energy into finding the problem, looking from today and after reading the articles on Gordon&rsquo;s blog it might as well just have been the kind of humor used, we will never know.</p>
+
+<p>But fortunately I am not the only one on the mailing list and others are slower to judge and have more patience and Mark jumped in to help and tried to help, starting to ask for additional information that were missing from the original mail. After the information not showing any additional evidence that could lead to a easy conclusion Marks ask for him to take a look at <a href="http://project-fifo.net/pages/viewpage.action?pageId=8126470">FiFo&rsquo;s Problem Checklist</a> and come to the IRC channel to help further.</p>
+
+<h2>Act 3 conclusion</h2>
+
+<p>Mark replied to the initial mail within less then an hour which is a truly amazing response time that can put most commercial support to shame request to go through the checklist and join the channel for a more direct help is a very good approach.</p>
+
+<p>Since I can actually look into my head I shed a bit more light on my take at the point, I decided to opt out of that request at that moment since Mark seemed to have it covered and the tone of the mail already made me sort it in a bucket of &lsquo;going to be annoying&rsquo;. So I probably should not judge as fast.</p>
+
+<p>To receive the best possible support there are some things Gordon could have done, the initial mail could have contained more information, the tone could have been different &ndash; jokes often communicate badly over written text, and following Marks request to go through the checklist had probably helped too if only to get some additional facts for later.</p>
+
+<h1>Act 4 &ndash; IRC</h1>
+
+<p>Marks suggested to swap to IRC for a quicker communication, we all hate mail ping pong I guess. Fortunately we <a href="http://echelog.com/logs/browse/project-fifo/1382914800">keep logs</a> of the FiFo channel to make it easy to google for known problems that were discussed before &ndash; in this case it allows us to look at the conversation between Mark (aka trentster) and Gordon (g-flemming).</p>
+
+<p>This is pretty uneventful mark asks a few more questions to rule out common errors none of which seem to be the cause. At this point Mark asks to escalate the issue and file a ticket with the logs and offers the suggestion to move to a newer version of FiFo (the development build at that time) along with <a href="http://project-fifo.net/pages/viewpage.action?pageId=7176245">the manual containing steps necessary to do this</a>. The reasoning being that the development build is quite well tested with multiple people (including Mark and myself) running it.</p>
+
+<h2>Act 4 conclusions</h2>
+
+<p>Things are still pretty well at this point, our escalation process seems to work wonderfully and the resources of the documentation hold a lot of valuable information.</p>
+
+<p>This is where the story ends for Mark and to all honestly he did an astonishing job to support here and escalate when he ran out of ways to help.</p>
+
+<p>On the channel Gordon mentions the first time that he is running FiFo with customer on it this indicates some urgency on the matter and at least I missed that line. Sadly so he did not seem to have went through the troubleshooting steps or read the update documentation.</p>
+
+<p>The lesson to learn here for us is to either ask people to include a IRC log in a new ticket or do it ourselves after they create it, this might have added some additional info to the ticket that was not present when it was created.</p>
+
+<h1>Act 5 &ndash; The ticketing system</h1>
+
+<p>Now this is where my part in the story starts, just as before I&rsquo;ll try to give some additional insight on what I was thinking at this time to shed a bit of light on my end &ndash; I obviously can&rsquo;t do the same for Gordon.</p>
+
+<p>As asked by Mark Gordon created a <a href="http://jira.project-fifo.net/browse/FIFO-142">JIRA Ticket</a> with the logs. When seeing the ticket I had already read the mailing list but not the IRC backlog (I don&rsquo;t always do that since I don&rsquo;t want to spend too much time reading old things that might not even affect me). From the ML I have already an unhappy feeling towards the issue as it looked to me that Gordon was not willing to put much effort into resolving the issue.</p>
+
+<p>Non the less I take a look at the logs and trie to pice together what exactly happened, up to this date I do not know what it was. The suggestions were pretty close to what Mark suggested earlier, a problem with too little memory or the filesystem the error in the logs <code>einval</code> hinted to some issue with a POSIX filesystem call.</p>
+
+<p>And at this point things are going wrong, lacking the information that there are production users on the system I make the mistake to judge the issue as non urgent especially after the full reply from Gordon takes a day. At that point I pretty much stop caring about the issue since I feel neither does Gordon (which is a grave misjudgment as it turns out). I revisit the issue only one week later at which point I now can only assume Gordon had given up and in a last attempt to provide a direction suggest looking at FS errors, missing the question asked in Gordon&rsquo;s reply.</p>
+
+<p>Gordon makes the mistake of not reading the documentation Mark gave him earlier or the question he posted next day would have already been answered and probably waiting a day with replying to the question.</p>
+
+<h2>Act 5 conclusion</h2>
+
+<p>I need to stop drawing conclusions so quickly and read bug requests more carefully or I would not have missed the migration question in the bug report. It would also be worth a try not to treat less urgent tickets with less care, it sucks to have tickets open the goal should be to close (as in resolve) then as soon as possible even if they seem not urgent &ndash; this applies especially to bugs.</p>
+
+<p>Gordon could have made his own life a lot easier by including more information in the ticket, noting that it is a urgent issue, including the history of what he already did to debug would have both helped a lot. In addition to that actually reading the documentation Mark provided would have answered the migration question beforehand.</p>
+
+<p>Mark while out of the picture already could have included the chat history in the ticket when seeing that Gordon did not &ndash; this admittedly is asking a lot.</p>
+
+<h1>Act 0 &ndash; how everything started</h1>
+
+<p>I know this is the wrong order, but Star Wars got away with it too. Now after the fact I know more then I did before. Reading Gordon&rsquo;s blog posts shed some light on the history and I think this is where actually things started to go wrong.</p>
+
+<p>I am glad for every person choosing to try out FiFo, it means people put trust in what we&rsquo;ve build and that is a really cool thing. But please if you want to use something in production inform yourself ahead of time. Don&rsquo;t put yourself and your customers at risk by blindly running into things.</p>
+
+<p>Talk to us, even before you start deploying! We know FiFo inside out, everyone in the FiFo team is running it themselves either for fun, for profit, for testing or for all three things. The channel is helpful too, there are more people outside the core team on the channel too who will gladly share their stories.</p>
+
+<p>To put this straight, you&rsquo;ll not only get the software for free you will even get some &ldquo;consulting&rdquo; tossed in the mix for not anything more then just asking! That is of cause in a sensible limit and given we have time, but there is always half an hour to spare here or there.</p>
+
+<h2>Act 0 conclusions</h2>
+
+<p>Deploying in a single node for a production system was not the best move, FiFo clusters for a reason and a distributed setup has many advantages over a single node. Probably some of the config settings could have been tweaked for a better user experience. It might have even made sense to run on dev instead of release or at least to switch early.</p>
+
+<p>Had we known the surrounding circumstances helping might have been a lot easier.</p>
+
+<h1>Act 1 &ndash; be active in the community</h1>
+
+<p>There is a huge advantage to this. And I don&rsquo;t even mean the fact that the community grows and everyone benefits. Being present in the channel and occasionally talking to people helps you to stay in the loop, know what is going on and what other people face for problems or find for solutions.</p>
+
+<p>It also gives the benefit to influence the course of the project, a lot of the features were thought up and discussed within the community. And last but not least being active might actually end up in helping others, which will make the community as a while stronger.</p>
+
+<h2>Act 1 conclusion</h2>
+
+<p>I admit I am totally biased here. Everyones time is limited. When I have to chose to help a stranger I have no idea who it is or someone I know and has contributed in one way or another to the community I will pick the community member every time.</p>
+
+<p>I can only talk for me here but I know for a fact that if Gordon or one of his colleges had been around in the channel and were a known face I would have taken the problem more serious. That said I have no idea if that is good or bad that I put community members before strangers.</p>
+
+<h1>Act 2 &ndash; read the fantastic manual</h1>
+
+<p>As Gordon points out FiFo not a trivial application. And he is entirely right, it is not, and there are may reasons for that which I am not going to argue here if that is a good or bad thing I will simply state that I have thought long about every choice I did in FiFo and claim them to be sound.</p>
+
+<p>But we are well aware that it is not a simple pice of software like a editor or something, that is why we put a lot of time and effort in providing a manual and an extensive set of informations surrounding it.</p>
+
+<p>We have a fully fledged manual, guides for Installation, Migration, and update. Best practice articles for Scaling, Networking and clustering. Checklists for problems and known issues. A list of terminology, information about our versioning system, recorded trainings (admittedly not much) and videos on usage.</p>
+
+<p>For people interested in developing we have API documentations, starter guides, a documented build process. We have a list of internal libraries, and specifications on data structures. A guide to plugins, the messaging system and how to write plugins.</p>
+
+<p>And last but not least we even have <a href="http://project-fifo.net/pages/viewpage.action?pageId=4194636">a page in which we explain how to best submit a bug</a></p>
+
+<h2>Act 2 conclusion</h2>
+
+<p>Reading those documents this would probably have saved a lot of time and pain and the fifo team some work. This is a reoccurring problem that we sadly see way too often  &ndash; if anyone has suggestions how to encourage users to read manuals please share the holy grail.</p>
+
+<p>The documents would have given good advice on how to set up a redundant fifo, how to check for problems and perhaps most importantly how to properly report a bug.</p>
+
+<h1>The Rant</h1>
+
+<p>Given I spent the last two years of my life working on Project FiFo I feel I am entitled to this. Bad bug reports are a pet peeve! And this was a prime example of one.</p>
+
+<p>All the right signs were there, a entirely nonsensical title the catch phrases &lsquo;it stopped working&rsquo; and &lsquo;nothing had changed&rsquo;. I can&rsquo;t say if this is the one in a million where that was actually true but in all my time in IT I have never seen those words to be correct, nor have I ever heard from someone else that saw the mystical situation of something just stopping to work.</p>
+
+<p>There was no usable information in there, no sign of interest to actually help the process of finding the root cause. Just because FiFo is free and there is no charge in using it does not mean my time is worth any less then yours, gladly help you with a problem but I&rsquo;ll expect some engagement in return. I do not like to have my time wasted by having to pull every but of information out of someones nose.</p>
+
+<p>Bottom line is: If you don&rsquo;t care enough about your problem to put some effort into getting help I will not care enough to help.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Backups With Project FiFo]]></title>

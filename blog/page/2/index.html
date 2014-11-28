@@ -9,7 +9,7 @@
   <meta name="author" content="Heinz N. 'Licenser' Gies">
 
   
-  <meta name="description" content="As part of Project FiFo I&rsquo;ve invested some time to research into DTrace and Erlang, not the probes that are there since some time but a DTrace &hellip;">
+  <meta name="description" content="I&rsquo;ve had some open source projects before, actually quite some, but Project FiFo is by far the most successful one. And aside from the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +77,162 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/31/a-vow-to-create-tickets/">A Vow to Create Tickets</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-31T01:30:00+01:00" pubdate data-updated="true">Jan 31<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;ve had some open source projects before, actually quite some, but Project FiFo is by far the most successful one. And aside from the technical perspective I&rsquo;ve learned a tremendous amount of new things already, one of which I want so share since. It sounds simple but I never looked at it this way before: Tickets.</p>
+
+<p>The project has caught on momentum so fast that at &lsquo;rush hours&rsquo; people come with questions, bug reports and feature requests at rate that it&rsquo;s they pile up faster then we can help or answer, the channel and community already does a great job &lsquo;filtering&rsquo; out easy to answer topics but enough are complicated to a point where a developer has to look at them.</p>
+
+<p>I&rsquo;ve been on both sides of the fence, and I had the honest believe that it&rsquo;s easier for developers if you just pop by the IRC channel and ask/report a issue. And that is not entirely wrong often a quick &lsquo;hey I&rsquo;ve problem X/Y&rsquo; is enough to solve a situation others had before that can be resoved with a few words.</p>
+
+<p>What I did not realise is how crucial it is to open tickets for anything that can&rsquo;t be resolved directly. The reason for this is simple, usually there are N users for 1 developer and for each user it&rsquo;s easy to keep their topic in mind and present it can become very had very fast for a developer with three users to listen to.</p>
+
+<p>But I don&rsquo;t want to wander of ranting, instead I&rsquo;ll try to explain why a ticket really helps me to get stuff done.</p>
+
+<h4>Organisation</h4>
+
+<p>Tickets make it very easy to keep track of them, assign them to people (given you&rsquo;re not solving them yourself) and add followup data. Tickets can be prioritised and categorised, this makes it very easy to group related items or even look up known issues.</p>
+
+<p>The more tickets there are and the more people working on them the more important this gets, handling six tickets gets way easier then handling six email conversations or unthreading six conversations from a IRC channel.</p>
+
+<h4>Information</h4>
+
+<p>One of the great things about tickets is that they can contain additional information, it&rsquo;s absolutely helpful to look at a issue that already has some information attached that goes further then three lines and a &ldquo;it isn&rsquo;t working&rdquo;.</p>
+
+<p>To make this better it is also possible to add files and logs which can contain much more information to a ticket and those can be &lsquo;handed around&rsquo; between different people looking at the issue without the need to send mails.</p>
+
+<h4>Followup</h4>
+
+<p>Tickets are a two way street, once a ticket is logged the reporter can see it&rsquo;s progress without having to ask &ndash; or at least can ask if it is not handled for a long period. Also it is easier to say &lsquo;hey what is the status if ticket #42&rsquo; where all the information is provided already instead of &lsquo;hey how about that bug that happened when …&rsquo; and have to explain it all over again.</p>
+
+<h4>Deduplication</h4>
+
+<p>Once a ticket is logged it&rsquo;s visible for everyone, there is no reason to go around and ask &lsquo;hey do you know the bug …&rsquo; or &lsquo;what are your thoughts about feature …&rsquo; and perhaps even get a wrong answer since you&rsquo;re talking to more then one person. This makes everyones live easier.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/28/erlang-and-more-dtrace/">Erlang and More DTrace</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-28T18:33:00+01:00" pubdate data-updated="true">Jan 28<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Some nice additions to the little Erlang DTrace demo. For once I&rsquo;ve added a filed to input custom scripts which are run on the server which is pretty neat since it allows running all kind of (l)quantize based scripts from the server and get a nice heatmap.</p>
+
+<p>Like how about the heatmap of how Erlang function call times?</p>
+
+<p><img src="/images/posts/2013-01-28-erlang-and-more-dtrace-1.png" alt="Erlang Call Heatmap" /></p>
+
+<p>The script used (also included in the repository):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">lquantize</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now that is already cool <strong>but</strong> there is more, in addition to there is a page now that allows to show list based queries (as count or sum) so for example it would be very easy to get a profiling of an Erlang program like this:</p>
+
+<p><img src="/images/posts/2013-01-28-erlang-and-more-dtrace-2.png" alt="Erlang Profiling" /></p>
+
+<p>The script used (also included in the repository):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">sum</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Cool thing is this profiling can be turned on and off in a live system and has a <strong>comparable low</strong> performance impact (less then 50% unless functions are hammering in my tests).</p>
+
+<p>To add to the joy, the scripts are stopped the moment the page is closed eliminating every kind of overhead, without restarting anything!</p>
+
+<p>So lets sum this up, the old news (when you played with dtrace before) is that you can profile and analyse your applications on the fly with minimal impact, but the funky part is that you can do it directly as part of your application and only shows when you actually look at the page :) it&rsquo;s kind of like quantumanalytics just the other way round!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -300,6 +456,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/11/28/postmortom-of-a-interesting-bug/">Postmortom of a Interesting Bug</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/02/post-mortem-of-a-failed-support-case/">Post-mortem of a Failed Support Case.</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
@@ -309,14 +473,6 @@
     
       <li class="post">
         <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">Asynchronous Garbage Collection With CRDTs</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/05/06/happy-birthday-project-fifo/">Happy Birthday Project FiFo</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/04/23/fifo-plus-80loc-of-bash-equals-5-node-riak-cluster/">FiFo + 80LOC of Bash = 5 Node Riak Cluster</a>
       </li>
     
   </ul>
