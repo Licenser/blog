@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Riak_test | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/riak-test/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-01-25T20:03:20-05:00</updated>
+  <updated>2014-11-28T19:26:57+01:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[A Asynchronously GCed or Set]]></title>
     <link href="http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set/"/>
-    <updated>2013-06-13T11:09:00-04:00</updated>
+    <updated>2013-06-13T11:09:00+02:00</updated>
     <id>http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set</id>
     <content type="html"><![CDATA[<p>Following the <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">article about Asynchronous garbage collection with CRDTs</a> I experimented with <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorsetg.erl">implementing the concept</a>. The OR Set is a very nice data structure for this  since it&rsquo;s rather simple and so is it&rsquo;s garbage!</p>
 
@@ -132,7 +132,7 @@ src/vorsetg.erl:389:&lt;0.135.0&gt;: [ OP ] Cnt: 344708, Avg: 38.539, Min: 0,   
   <entry>
     <title type="html"><![CDATA[Asynchronous Garbage Collection With CRDTs]]></title>
     <link href="http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/"/>
-    <updated>2013-06-11T15:45:00-04:00</updated>
+    <updated>2013-06-11T15:45:00+02:00</updated>
     <id>http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts</id>
     <content type="html"><![CDATA[<p>So CRDTs are very very nice data structures awesome for eventual consistent applications like riak, or the components of <a href="http://project-fifo.net">Project-FiFo</a>. So they have one big drawback, most of them collect garbage, and over time that can sum up to a lot making them pretty unpractical in many cases. Collecting this garbage is a bit tricky, since usually it means synchronising the data &ndash; which going back to the eventual consistent stuff prevents either A or P.</p>
 
@@ -213,7 +213,7 @@ src/vorsetg.erl:389:&lt;0.135.0&gt;: [ OP ] Cnt: 344708, Avg: 38.539, Min: 0,   
   <entry>
     <title type="html"><![CDATA[Writing Your First Riak Test Test (Yes I Know There Are Two Tests There)]]></title>
     <link href="http://blog.licenser.net/blog/2013/04/09/writing-your-first-riak-test-test-yes-i-know-there-are-two-tests-there/"/>
-    <updated>2013-04-09T23:33:00-04:00</updated>
+    <updated>2013-04-09T23:33:00+02:00</updated>
     <id>http://blog.licenser.net/blog/2013/04/09/writing-your-first-riak-test-test-yes-i-know-there-are-two-tests-there</id>
     <content type="html"><![CDATA[<p>As promised in a <a href="/blog/2013/03/31/getting-started-with-riak-test-and-riak-core/">previous post</a> I&rsquo;ll talk a bit about writing tests for <code>riak_test</code>. To start with the obvious it&rsquo;s pretty simple and pretty awesome. <code>riak_test</code> gives you the tools you&rsquo;ve dreamed of when testing distributed <code>riak_core</code> applications:</p>
 
@@ -327,7 +327,7 @@ pass.
   <entry>
     <title type="html"><![CDATA[Getting Started With Riak_test and Riak_core]]></title>
     <link href="http://blog.licenser.net/blog/2013/03/31/getting-started-with-riak-test-and-riak-core/"/>
-    <updated>2013-03-31T07:30:00-04:00</updated>
+    <updated>2013-03-31T07:30:00+02:00</updated>
     <id>http://blog.licenser.net/blog/2013/03/31/getting-started-with-riak-test-and-riak-core</id>
     <content type="html"><![CDATA[<p>If you don&rsquo;t know what <code>riak_core</code> is, or don&rsquo;t have a <code>riak_core</code> based application you&rsquo;ll probably not take too much practical use of this posts you might want to start with <a href="https://github.com/rzezeski/try-try-try">Ryan Zezeski&rsquo;s &ldquo;working&rdquo; blog try try try</a> and the <a href="https://github.com/basho/rebar_riak_core">rebar plugin</a>.</p>
 
@@ -337,13 +337,13 @@ pass.
 
 <h2>What is riak_test?</h2>
 
-<p>So before we start; a few words to <code>riak_test</code>. <code>riak_test</code> is a pretty nice framework for testing distributed applications, it is, just as much as all the other <code>riak_</code> stuff created by <a href="http://basho.com">Basho</a>, pretty darn awesome.</p>
+<p>So before we start a few words to <code>riak_test</code>. <code>riak_test</code> is a pretty nice framework for testing distributed applications, it is, just as about all other <code>riak_</code> stuff created by <a href="http://basho.com">Basho</a> and it is pretty darn awesome.</p>
 
-<p>At it&rsquo;s current state it is very focused on testing <code>riak_kv</code> (or <code>riak</code> as in the database) but from a first glance a lot of functionality is very universal and after all <code>riak_kv</code> is also built on top of <code>riak_core</code>, so modifying it to run with other <code>riak_core</code> based apps is pretty easy.</p>
+<p>At it&rsquo;s current state it is very focused on testing <code>riak_kv</code> (or <code>riak</code> as in the database) but from a first glance a lot of functionality is very universal and after all <code>riak_core</code> is also build on top of <code>riak_core</code>, so modifying it to run with other <code>riak_core</code> based apps is pretty easy.</p>
 
 <h2>The setup</h2>
 
-<p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changes to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
+<p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changed to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
 
 <p><code>``
 ---riak_test--------- (bashos master tree)
@@ -368,17 +368,19 @@ git clone https://github.com/Licenser/riak_test.git
 cd riak_test
 </code></p>
 
-<p>Now we branch off to have a place to get our <code>howl</code> application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
+<p>Now we branch of to have a place to get our howl application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
 
 <p><code>
-git branch howl &amp;&amp; git checkout howl can be git checkout -b howl
+git checkout riak_core
+git branch howl
+git checkout howl
 </code></p>
 
 <p>Okay that&rsquo;s it for the basic setup not that bad so far is it?</p>
 
 <h2>Configuration</h2>
 
-<p>Next thing we need to do is create a configuration, at this point we&rsquo;ll assume you don&rsquo;t have one yet so we&rsquo;ll start from scratch, if you add more then one application later on you can just add them to an existing configuration.</p>
+<p>Next thing we need to do is creating a configuration, at this point we assume you don&rsquo;t have any yet so we&rsquo;ll start from scratch, if you add more then one application later on you can just add them to an existing configuration.</p>
 
 <p><code>riak_test</code> looks for the configuration file <code>~/.riak_test.config</code> and reads all the data from there so we&rsquo;ll first need to copy the sample config there:</p>
 
@@ -386,7 +388,7 @@ git branch howl &amp;&amp; git checkout howl can be git checkout -b howl
 cp riak_test.config.sample ~/.riak_test.config
 </code></p>
 
-<p>Next step is to open it in your favorite editor, you&rsquo;ll recognize it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
+<p>Next step is to open it in your favourite editor, you&rsquo;ll recognise it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
 
 <p>So lets go down to where it reads:</p>
 
@@ -445,7 +447,7 @@ cp riak_test.config.sample ~/.riak_test.config
 
 <p>```</p>
 
-<p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>~/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
+<p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>/Users/heinz/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
 
 <ul>
 <li><code>test</code> &ndash; the most unstable branch.</li>
@@ -454,7 +456,7 @@ cp riak_test.config.sample ~/.riak_test.config
 </ul>
 
 
-<p>This setup might not work for you at all, but since these are only path names it should be easy enough to adapt.</p>
+<p>This setup might not work for you at all, but since it are only path names it should be easy enough to adept the.</p>
 
 <p>Note that by default <code>riak_test</code> will run tests on the <code>current</code> environment</p>
 
@@ -466,20 +468,20 @@ cp riak_test.config.sample ~/.riak_test.config
               %% This is the root of the built `rtdev' repository,
               %% used for manipulating the repo with git. All
               %% versions should be inside this directory.
-              {root, "~/rt/howl"},
+              {root, "/Users/heinz/rt/howl"},
 
               %% The path to the `current' version, which is used
               %% exclusively except during upgrade tests.
-              {current, "~/rt/howl/howl-test"},
+              {current, "/Users/heinz/rt/howl/howl-test"},
 
               %% The path to the most immediately previous version
               %% of the project, which is used when doing upgrade
               %% tests.
-              {previous, "~/rt/howl/howl-dev"},
+              {previous, "/Users/heinz/rt/howl/howl-dev"},
 
               %% The path to the version before `previous', which
               %% is used when doing upgrade tests.
-              {legacy, "~/rt/howl/howl-stable"}
+              {legacy, "/Users/heinz/rt/howl/howl-stable"}
              ]}
 </code></pre>
 
@@ -505,20 +507,20 @@ cp riak_test.config.sample ~/.riak_test.config
               %% This is the root of the built `rtdev' repository,
               %% used for manipulating the repo with git. All
               %% versions should be inside this directory.
-              {root, "~/rt/howl"},
+              {root, "/Users/heinz/rt/howl"},
 
               %% The path to the `current' version, which is used
               %% exclusively except during upgrade tests.
-              {current, "~/rt/howl/howl-test"},
+              {current, "/Users/heinz/rt/howl/howl-test"},
 
               %% The path to the most immediately previous version
               %% of the project, which is used when doing upgrade
               %% tests.
-              {previous, "~/rt/howl/howl-dev"},
+              {previous, "/Users/heinz/rt/howl/howl-dev"},
 
               %% The path to the version before `previous', which
               %% is used when doing upgrade tests.
-              {legacy, "~/rt/howl/howl-stable"}
+              {legacy, "/Users/heinz/rt/howl/howl-stable"}
              ]}
 </code></pre>
 
@@ -527,60 +529,58 @@ cp riak_test.config.sample ~/.riak_test.config
 
 <h2>Setting up the application</h2>
 
-<p>We&rsquo;ve got <code>riak_test</code> ready to test now next we need to prepare howl to be tested, we&rsquo;ll only look at the <code>current</code> (aka <code>test</code>) setup since the steps for others are pretty much the same.</p>
+<p>We&rsquo;ve <code>riak_test</code> ready to test now next we need to prepare howl to be tested, we&rsquo;ll only look at the <code>current</code> (aka <code>test</code>) setup since the steps for others are pretty much the same.</p>
 
 <p>The first step is that we need the folder, so lets create it</p>
 
-<p><code>bash
-mkdir -p ~/rt/raw/howl
-cd ~/rt/raw/howl
+<p><code>
+mkdir -p /Users/heinz/rt/raw/howl
+cd /Users/heinz/rt/raw/howl
 </code></p>
 
 <p>Since howl lives with the octocat on github it&rsquo;s easy to fetch our application and checkout the test branch (remember <code>current</code> is on the test branch for me):</p>
 
-<p><code>bash
+<p><code>
 git clone https://github.com/project-fifo/howl.git howl-test
 cd howl-test
 git checkout test
 </code></p>
 
-<p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying them.</p>
+<p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying the.</p>
 
-<p><code>bash
+<p><code>
 make stagedevrel
 </code></p>
 
-<p>Now we&rsquo;ve got to do a bit of cheating, <code>riak_test</code> expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set it up as a git repository.</p>
+<p>Now we&rsquo;ve to do a bit of a cheating, riak_text expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set up as git repositor.</p>
 
-<p>```bash
-mkdir -p ~/rt/howl
-cd ~/rt/howl
+<p>```
+mkdir -p /Users/heinz/rt/howl
+cd /Users/heinz/rt/howl
 git init</p>
 
-<p>cat &lt;<EOF > ~/rt/howl/.gitignore
+<p>cat &lt;<EOF > /Users/heinz/rt/howl/.gitignore
 <em>/dev/</em>/bin
 <em>/dev/</em>/erts-<em>
 </em>/dev/<em>/lib
-</em>/dev/<em>/releases
-</em>/dev/<em>/share
-</em>/dev/*/snmp
+</em>/dev/*/releases
 EOF
-git add .gitignore
 ```</p>
 
-<p>Now we need to link our devrel files. Since howl uses [cuttlefish] I have to copy the <code>howl.config.example</code> file to <code>howl.config</code> into <code>etc</code> directory, this may be different for your setup.</p>
+<p>Now we need to link our devrel files and for my setup I&rsquo;ve to copy the <code>*.example</code> files of the <code>app.config</code> and <code>vm.args</code> into the right place they might be named differently for you.</p>
 
-<p>```bash
-export RT_BASE=~/rt/howl/howl-test
-export RC_BASE=~/rt/raw/howl/howl-test
+<p>```
+export RT_BASE=/Users/heinz/rt/howl/howl-test
+export RC_BASE=/Users/heinz/rt/raw/howl/howl-test
 for i in 1 2 3 4
 do
   mkdir -p ${RT_BASE}/dev/dev${i}/
   cd ${RT_BASE}/dev/dev${i}/
   mkdir data etc
   touch data/.gitignore
-  ln -s ${RC_BASE}/dev/dev${i}/{bin,erts-*,lib,releases,share,snmp} .
-  cp ${RC_BASE}/dev/dev${i}/etc/howl.conf.example etc/howl.conf
+  ln -s ${RC_BASE}/dev/dev${i}/{bin,erts-*,lib,releases} .
+  cp ${RC_BASE}/dev/dev${i}/etc/vm.args.example etc/vm.args
+  cp ${RC_BASE}/dev/dev${i}/etc/app.config.example etc/app.config
 done</p>
 
 <p>```</p>
@@ -589,19 +589,13 @@ done</p>
 
 <p>That&rsquo;s it.</p>
 
-<p>How add the content to the git repository you initiated and commit it.</p>
-
-<p><code>bash
-cd $RT_BASE &amp;&amp; git add . &amp;&amp; git commit -am 'First build.'  
-</code></p>
-
 <h2>Running a first test</h2>
 
 <p>In the <code>riak_core</code> branch of <code>riak_test</code> I&rsquo;ve moved all the <code>riak_kv</code> specific tests from <code>tests</code> to <code>tests_riakkv</code> so you still can look at them but I left one of them in <code>tests</code>, namely the basic command test &ndash; it will check if your applications command (<code>howl</code> in our case) is well behaved.</p>
 
 <p>We&rsquo;ll want to run it to see if <code>howl</code> is a good boy and does well to do so we&rsquo;ll need to get back into the <code>riak_test</code> folder and run the <code>riak_test</code> command:</p>
 
-<p><code>bash
+<p><code>
 cd ~/Projects/riak_test
 ./riak_test -t tests/* -c howl -v -b none
 </code></p>
