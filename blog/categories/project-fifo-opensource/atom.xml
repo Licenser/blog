@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Project-FiFo,opensource, | Lice!]]></title>
+  <title><![CDATA[Category: Project-fifo,opensource, | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/project-fifo-opensource/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-29T10:41:18+01:00</updated>
+  <updated>2015-04-14T11:55:55+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -26,7 +26,7 @@
 
 <p>As a disclaimer: the problem is still a mystery and will probably remain so forever. Also all documentation linked is from the time the bug was filed (thanks for versioning) to give a fair picture of what was available back then.</p>
 
-<h1>Act 3 &ndash; the mailing list</h1>
+<h1>Act 3 - the mailing list</h1>
 
 <p>The history of this case starts a bit into the history of the whole story, but for now lets skip the first part and look at the first time we (as in the FiFo team) came aware of the problem: <a href="https://groups.google.com/forum/#!topic/project-fifo/MZJYOs-CtP8">A mail to the mailing list and the conversation following it</a>.</p>
 
@@ -42,7 +42,7 @@
 
 <p>To receive the best possible support there are some things Gordon could have done, the initial mail could have contained more information, the tone could have been different — jokes often communicate badly over written text, and following Marks request to go through the checklist had probably helped too if only to get some additional facts for later.</p>
 
-<h1>Act 4 &ndash; IRC</h1>
+<h1>Act 4 - IRC</h1>
 
 <p>Marks suggested to swap to IRC for a quicker communication, we all hate mail ping pong I guess. Fortunately we <a href="http://echelog.com/logs/browse/project-fifo/1382914800">keep logs</a> of the FiFo channel to make it easy to google for known problems that were discussed before — in this case it allows us to look at the conversation between Mark (aka trentster) and Gordon (g-flemming).</p>
 
@@ -58,9 +58,9 @@
 
 <p>The lesson to learn here for us is to either ask people to include an IRC log in a new ticket or do it ourselves after they create it, this might have added some additional info to the ticket that was not present when it was created.</p>
 
-<h1>Act 5 &ndash; The ticketing system</h1>
+<h1>Act 5 - The ticketing system</h1>
 
-<p>Now this is where my part in the story starts, just as before I&rsquo;ll try to give some additional insight on what I was thinking at this time to shed a bit of light on my end &ndash; I obviously can&rsquo;t do the same for Gordon.</p>
+<p>Now this is where my part in the story starts, just as before I&rsquo;ll try to give some additional insight on what I was thinking at this time to shed a bit of light on my end - I obviously can&rsquo;t do the same for Gordon.</p>
 
 <p>As asked by Mark Gordon created a <a href="http://jira.project-fifo.net/browse/FIFO-142">JIRA Ticket</a> with the logs. When seeing the ticket I had already read the mailing list but not the IRC backlog (I don&rsquo;t always do that since I don&rsquo;t want to spend too much time reading old things that might not even affect me). From the ML I have already an unhappy feeling towards the issue as it looked to me that Gordon was not willing to put much effort into resolving the issue.</p>
 
@@ -78,7 +78,7 @@
 
 <p>Mark while out of the picture already could have included the chat history in the ticket when seeing that Gordon did not — this admittedly is asking a lot.</p>
 
-<h1>Act 0 &ndash; how everything started</h1>
+<h1>Act 0 - how everything started</h1>
 
 <p>I know this is the wrong order, but Star Wars got away with it too. Now after the fact I know more then I did before. Reading Gordon&rsquo;s blog posts shed some light on the history and I think this is where actually things started to go wrong.</p>
 
@@ -94,7 +94,7 @@
 
 <p>Had we known the surrounding circumstances helping might have been a lot easier.</p>
 
-<h1>Act 1 &ndash; be active in the community</h1>
+<h1>Act 1 - be active in the community</h1>
 
 <p>There is a huge advantage to this. And I don&rsquo;t even mean the fact that the community grows and everyone benefits. Being present in the channel and occasionally talking to people helps you to stay in the loop, know what is going on and what other people face for problems or find for solutions.</p>
 
@@ -106,7 +106,7 @@
 
 <p>I can only talk for me here but I know for a fact that if Gordon or one of his colleges had been around in the channel and were a known face I would have taken the problem more serious. That said I have no idea if that is good or bad that I put community members before strangers.</p>
 
-<h1>Act 2 &ndash; read the fantastic manual</h1>
+<h1>Act 2 - read the fantastic manual</h1>
 
 <p>As Gordon points out FiFo not a trivial application. And he is entirely right, it is not, and there are may reasons for that which I am not going to argue here if that is a good or bad thing I will simply state that I have thought long about every choice I did in FiFo and claim them to be sound.</p>
 
@@ -120,7 +120,7 @@
 
 <h2>Act 2 conclusion</h2>
 
-<p>Reading those documents this would probably have saved a lot of time and pain and the fifo team some work. This is a reoccurring problem that we sadly see way too often  &ndash; if anyone has suggestions how to encourage users to read manuals please share the holy grail.</p>
+<p>Reading those documents this would probably have saved a lot of time and pain and the fifo team some work. This is a reoccurring problem that we sadly see way too often  - if anyone has suggestions how to encourage users to read manuals please share the holy grail.</p>
 
 <p>The documents would have given good advice on how to set up a redundant fifo, how to check for problems and perhaps most importantly how to properly report a bug.</p>
 

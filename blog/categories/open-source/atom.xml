@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Open Source | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/open-source/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-29T10:41:18+01:00</updated>
+  <updated>2015-04-14T11:55:55+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -42,7 +42,7 @@
 
 <h4>Followup</h4>
 
-<p>Tickets are a two way street, once a ticket is logged the reporter can see it&rsquo;s progress without having to ask &ndash; or at least can ask if it is not handled for a long period. Also it is easier to say &lsquo;hey what is the status if ticket #42&rsquo; where all the information is provided already instead of &lsquo;hey how about that bug that happened when …&rsquo; and have to explain it all over again.</p>
+<p>Tickets are a two way street, once a ticket is logged the reporter can see it&rsquo;s progress without having to ask - or at least can ask if it is not handled for a long period. Also it is easier to say &lsquo;hey what is the status if ticket #42&rsquo; where all the information is provided already instead of &lsquo;hey how about that bug that happened when …&rsquo; and have to explain it all over again.</p>
 
 <h4>Deduplication</h4>
 

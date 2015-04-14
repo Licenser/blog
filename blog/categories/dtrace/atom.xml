@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: DTrace | Lice!]]></title>
+  <title><![CDATA[Category: Dtrace | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/dtrace/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-29T10:41:18+01:00</updated>
+  <updated>2015-04-14T11:55:55+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -65,9 +65,9 @@ erlang*:::function-return
     <link href="http://blog.licenser.net/blog/2013/01/25/erlang-and-dtrace/"/>
     <updated>2013-01-25T00:21:00+01:00</updated>
     <id>http://blog.licenser.net/blog/2013/01/25/erlang-and-dtrace</id>
-    <content type="html"><![CDATA[<p>As part of <a href="http://project-fifo.net">Project FiFo</a> I&rsquo;ve invested some time to research into DTrace and Erlang, not the probes that are there since some time but a DTrace consumer &ndash; letting you execute DTrace scripts from within Erlang and read the results.</p>
+    <content type="html"><![CDATA[<p>As part of <a href="http://project-fifo.net">Project FiFo</a> I&rsquo;ve invested some time to research into DTrace and Erlang, not the probes that are there since some time but a DTrace consumer - letting you execute DTrace scripts from within Erlang and read the results.</p>
 
-<p>The result of this research is the <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> a consumer for DTrace implemented as a Erlang NIF. The NIF is based on the <a href="https://github.com/bcantrill/node-libdtrace">node.js</a> and and <a href="http://tmetsch.github.com/python-dtrace/">python</a> implementations &ndash; many thanks to them!</p>
+<p>The result of this research is the <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> a consumer for DTrace implemented as a Erlang NIF. The NIF is based on the <a href="https://github.com/bcantrill/node-libdtrace">node.js</a> and and <a href="http://tmetsch.github.com/python-dtrace/">python</a> implementations - many thanks to them!</p>
 
 <p>It&rsquo;s pretty easy to consume dtrace data from within erlang with <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> and I figured lets make a little demo. Since I&rsquo;m not a big fan of reinventing the wheel and a simple demo had been done before, namely <a href="http://howtonode.org/heat-tracer">heat-tracer</a>.</p>
 
@@ -75,110 +75,78 @@ erlang*:::function-return
 
 <p>When connecting we set up a timer to inform us every second to gather the results from DTrace:</p>
 
-<p>```erlang
-websocket_init(_Any, Req, []) &ndash;></p>
-
-<pre><code>timer:send_interval(1000, tick),
-Req2 = cowboy_http_req:compact(Req),
-{ok, Req2, undefined, hibernate}.
+<pre><code class="erlang">websocket_init(_Any, Req, []) -&gt;
+    timer:send_interval(1000, tick),
+    Req2 = cowboy_http_req:compact(Req),
+    {ok, Req2, undefined, hibernate}.
 </code></pre>
-
-<p>```</p>
 
 <p>Next up we handle incoming Websockets messages, this deals very simple. Every string that is send is considered a new dtrace script to execute.</p>
 
 <p>The first part creates a new handler, this is pretty much a reference to the libdtrace internal data structures. Since we allow multiple scripts to be send we also have to ensure that the old sockets are closed before new ones are opened.</p>
 
-<p>```erlang
-websocket_handle({text, Msg}, Req, State) &ndash;></p>
-
-<pre><code>%% We create a new handler
-{ok, Handle} = case State of
-                   undefined -&gt;
-                       erltrace:open();
-                   {Old} -&gt;
-                       %% But we want to make sure that any old one is closed first.
-                       erltrace:close(Old),
-                       erltrace:open()
-               end,
+<pre><code class="erlang">websocket_handle({text, Msg}, Req, State) -&gt;
+    %% We create a new handler
+    {ok, Handle} = case State of
+                       undefined -&gt;
+                           erltrace:open();
+                       {Old} -&gt;
+                           %% But we want to make sure that any old one is closed first.
+                           erltrace:close(Old),
+                           erltrace:open()
+                   end,
 </code></pre>
-
-<p>```</p>
 
 <p>Next we compile the dtrace script, <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> only takes lists as strings and not binaries so we&rsquo;ve to convert it first and then we pass it along with our handle to get the script compiled. It will return <code>ok</code> if everything went well.</p>
 
-<p>```erlang</p>
-
-<pre><code>%% We've to confert cowboys binary to a list.
-Msg1 = binary_to_list(Msg),
-ok = erltrace:compile(Handle, Msg1),
+<pre><code class="erlang">    %% We've to confert cowboys binary to a list.
+    Msg1 = binary_to_list(Msg),
+    ok = erltrace:compile(Handle, Msg1),
 </code></pre>
-
-<p>```</p>
 
 <p>Okay now that we&rsquo;ve compiled the script we just need to tell dtrace to start running it, this happens with the <code>erltrace:go</code> call. Again it will return <code>ok</code> when everything is fine. Finally we just output the script as debug info and return.</p>
 
-<p>```erlang</p>
-
-<pre><code>ok = erltrace:go(Handle),
-io:format("SCRIPT&gt; ~s~n", [Msg]),
-{ok, Req, {Msg1, Handle}};
+<pre><code class="erlang">    ok = erltrace:go(Handle),
+    io:format("SCRIPT&gt; ~s~n", [Msg]),
+    {ok, Req, {Msg1, Handle}};
 </code></pre>
-
-<p>```</p>
 
 <p>Next up: reading the dtrace data, <code>erltrace:walk</code> do that for you and hand back a datastructur to parse. It is returned as <code>{ok, Data}</code> when there is something to handle.</p>
 
-<p>```erlang
-websocket_info(tick, Req, {Msg, Handle} = State) &ndash;></p>
-
-<pre><code> case erltrace:walk(Handle) of
-     {ok, R} -&gt;
+<pre><code class="erlang">websocket_info(tick, Req, {Msg, Handle} = State) -&gt;
+     case erltrace:walk(Handle) of
+         {ok, R} -&gt;
 </code></pre>
-
-<p>```</p>
 
 <p>Now since we have JSON on the other side we need to transform the data here Erlangs list comprehensions come to the rescue. Data is returned as <code>[{lquantize, [Name], { {BucketStart, BucketEnd
 }, BucketCount}}]</code> and we want it in the form <code>{Name, [[BucketStart, BucketEnd], BucketCount]</code> so here you go. We can tehn simpley encode this with <a href="https://github.com/talentdeficit/jsx">jsx</a> and send it over the wire:</p>
 
-<p>```erlang</p>
-
-<pre><code>         JSON = [{list_to_binary(Call),[ [[S, E], V]|| { {S, E}, V} &lt;- Vs]}|| {lquantize, [Call], Vs} &lt;- R],
-         {reply, {text, jsx:encode(JSON)}, Req, State, hibernate};
+<pre><code class="erlang">             JSON = [{list_to_binary(Call),[ [[S, E], V]|| { {S, E}, V} &lt;- Vs]}|| {lquantize, [Call], Vs} &lt;- R],
+             {reply, {text, jsx:encode(JSON)}, Req, State, hibernate};
 </code></pre>
-
-<p>```</p>
 
 <p><code>ok</code> will be returned if there is no data yet to consume, we simply do nothing here.</p>
 
-<p>```erlang</p>
-
-<pre><code>     ok -&gt;
-         {ok, Req, {Msg, Handle1}};
+<pre><code class="erlang">         ok -&gt;
+             {ok, Req, {Msg, Handle1}};
 </code></pre>
-
-<p>```</p>
 
 <p>The last case is just for making things proper, if an error is returned we close stop the current handle and create a new one the same we did in the init.</p>
 
-<p>```erlang</p>
-
-<pre><code>     Other -&gt;
-         io:format("Error: ~p", [E]),
-         try
-             erltrace:stop(Handle)
-         catch
-             _:_ -&gt;
-                 ok
-         end,
-         {ok, Handle1} = erltrace:open(),
-         erltrace:compile(Handle1, Msg),
-         erltrace:go(Handle),
-         {ok, Req, {Msg, Handle1}}
- end;
+<pre><code class="erlang">         Other -&gt;
+             io:format("Error: ~p", [E]),
+             try
+                 erltrace:stop(Handle)
+             catch
+                 _:_ -&gt;
+                     ok
+             end,
+             {ok, Handle1} = erltrace:open(),
+             erltrace:compile(Handle1, Msg),
+             erltrace:go(Handle),
+             {ok, Req, {Msg, Handle1}}
+     end;
 </code></pre>
-
-<p>```</p>
 
 <p>Now that all put together and run it on a dtrace capable machine we get a nice little heatmap that updates every second:</p>
 

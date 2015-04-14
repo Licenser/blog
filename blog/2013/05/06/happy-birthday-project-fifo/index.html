@@ -18,13 +18,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://blog.licenser.net/blog/2013/05/06/happy-birthday-project-fifo">
+  <link rel="canonical" href="http://blog.licenser.net/blog/2013/05/06/happy-birthday-project-fifo/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Lice!" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>...</h2>
+    <h2>&#8230;</h2>
   
 </hgroup>
 
@@ -62,7 +62,7 @@
   
 <form action="http://google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:blog.licenser.net" />
+    <input type="hidden" name="sitesearch" value="blog.licenser.net">
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
@@ -89,14 +89,7 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2013-05-06T00:00:00+02:00" pubdate data-updated="true">May 6<span>th</span>, 2013</time>
+<time class='entry-date' datetime='2013-05-06T00:00:00+02:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
         
       </p>
     
@@ -127,7 +120,7 @@
 
 <p>I&rsquo;ve been working on FiFo for a year now, well first attempts counted a bit longer even, and without exaggerating this was the most amazing year in my life. It has been a blast, I&rsquo;ve learned tons of things, both technical and socially, meet some of the most amazing people I can think of and honestly never have been this happy before.</p>
 
-<p>The whole thing started when I wanted to share a co-located server with some friends who are kind of consoleophobe and I wasn&rsquo;t happy with the approach to give everyone root access. So a solution had to be found but vanilla SmartOS provided none, SDC was making no sense with a single node and too expensive for a hobby system. Everything else was simply not Solaris, period. Adding to it that Deirdré showed me the community, randomly answering a question on twitter with a hint to visit the channel &ndash; which was was incredible surprising after experiencing some of the Linux community… really there was no chance in hell ending up with anything but SmartOS.</p>
+<p>The whole thing started when I wanted to share a co-located server with some friends who are kind of consoleophobe and I wasn&rsquo;t happy with the approach to give everyone root access. So a solution had to be found but vanilla SmartOS provided none, SDC was making no sense with a single node and too expensive for a hobby system. Everything else was simply not Solaris, period. Adding to it that Deirdré showed me the community, randomly answering a question on twitter with a hint to visit the channel - which was was incredible surprising after experiencing some of the Linux community… really there was no chance in hell ending up with anything but SmartOS.</p>
 
 <p>But all in all there was no virtualisation solution that suited what I wanted, not even if I had taken cost out of the equation. And since I refuse to swing the white flag and surrender to something I don&rsquo;t like the only wan was: build one! (also I&rsquo;m crazy about challenges and seeing how far I can push things ;) And after</p>
 
@@ -142,7 +135,7 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Now before we go on I share something that was asked a few times now: why the crazy names and obsession with dogs?</p>
 
-<p>So the story starts with naming the first component, which back then was wiggle (after being very disappointed with my name choice for vmwebadm). Wiggle was the component that gave a unified interface to multiple hypervisors and in the SmartOS channel I had heard that Joyent called it&rsquo;s thing &lsquo;headnode&rsquo;, but for FiFo the goal was never to clone something that already existed and I wanted to make a point of it so here is how the thought chain went: head &ndash;> tail, node &ndash;> nod &ndash;> wiggle, tail&amp;wiggle &ndash;> dog.</p>
+<p>So the story starts with naming the first component, which back then was wiggle (after being very disappointed with my name choice for vmwebadm). Wiggle was the component that gave a unified interface to multiple hypervisors and in the SmartOS channel I had heard that Joyent called it&rsquo;s thing &lsquo;headnode&rsquo;, but for FiFo the goal was never to clone something that already existed and I wanted to make a point of it so here is how the thought chain went: head -> tail, node -> nod -> wiggle, tail&amp;wiggle -> dog.</p>
 
 <p>Now I had a promise to keep, back when I was younger and my brother was even younger (since he is my little brother) he got a pet (as in not real) dog, and I had just learned with a FiFo (First in First out) queue is, I found that Fifo is a amazing name for a dog, so I talked my brother into naming his pet dog Fifo telling hime that if I ever had a dog I&rsquo;d name it Fifo too, that said, I&rsquo;m a man of my word even if it takes over something like 15 years to make good on it.</p>
 
@@ -160,7 +153,7 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Cold migration of VM&rsquo;s from one host to another, and putting them into cold storage / backing them up as a whole.</p>
 
-<p>Well, I could go on and on rambling about crazy ideas for another thousand or so words or so but lets save this for another time. All in all I wanted to say it was an amazing year, amazing to see the community develop, seeing how FiFo gets used and I am hugely excited to see how things continue from here on! I can&rsquo;t wait to see the first 10+ node FiFo setup, hear what people make out of it. See a first adopted UI, people starting to build things around FiFo &ndash; there already is a <a href="https://github.com/bakins/project-fifo-ruby">ruby implementation</a> of the API along with a <a href="https://github.com/bakins/knife-fifo">chef knife thing</a>.</p>
+<p>Well, I could go on and on rambling about crazy ideas for another thousand or so words or so but lets save this for another time. All in all I wanted to say it was an amazing year, amazing to see the community develop, seeing how FiFo gets used and I am hugely excited to see how things continue from here on! I can&rsquo;t wait to see the first 10+ node FiFo setup, hear what people make out of it. See a first adopted UI, people starting to build things around FiFo - there already is a <a href="https://github.com/bakins/project-fifo-ruby">ruby implementation</a> of the API along with a <a href="https://github.com/bakins/knife-fifo">chef knife thing</a>.</p>
 
 <p>So to close: Happy birthday FiFo, thanks to all of you for joining this journey and lets brace for another year of dog-named-components!</p>
 </div>
@@ -171,21 +164,14 @@ better. That alone was worth every second of time invested.</p>
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
 
       
 
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2013-05-06T00:00:00+02:00" pubdate data-updated="true">May 6<span>th</span>, 2013</time>
+<time class='entry-date' datetime='2013-05-06T00:00:00+02:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
       
 
 
@@ -251,7 +237,7 @@ better. That alone was worth every second of time invested.</p>
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating...</li>
+    <li class="loading">Status updating&#8230;</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -288,7 +274,7 @@ better. That alone was worth every second of time invested.</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Heinz N. 'Licenser' Gies -
+  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

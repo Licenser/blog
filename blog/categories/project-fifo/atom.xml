@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Project-FiFo | Lice!]]></title>
+  <title><![CDATA[Category: Project-fifo | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/project-fifo/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-29T10:41:18+01:00</updated>
+  <updated>2015-04-14T11:55:55+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -33,11 +33,11 @@
 <p>To build anything we&rsquo;ll need some tools, hammer and nails will not do us much good here so we are going to pick:</p>
 
 <ul>
-<li><a href="http://project-fifo.net">Project FiFo</a> &ndash; my favourite virtualisation tool (I am biassed I wrote it), but it&rsquo;s very easy to set up and very powerful.</li>
-<li><a href="https://github.com/project-fifo/pyfi">The FiFo Console Client</a> &ndash; we want to script things, a UI isn&rsquo;t helpful.</li>
-<li>bash &ndash; the simplest possible scripting tool.</li>
-<li>curl &ndash; since riak offers a http fronted it&rsquo;s a wonderful way to check if the system is up.</li>
-<li><a href="http://trentm.com/json/">jsontool</a> &ndash; a nifty utility to traverse JSON documents.</li>
+<li><a href="http://project-fifo.net">Project FiFo</a> - my favourite virtualisation tool (I am biassed I wrote it), but it&rsquo;s very easy to set up and very powerful.</li>
+<li><a href="https://github.com/project-fifo/pyfi">The FiFo Console Client</a> - we want to script things, a UI isn&rsquo;t helpful.</li>
+<li>bash - the simplest possible scripting tool.</li>
+<li>curl - since riak offers a http fronted it&rsquo;s a wonderful way to check if the system is up.</li>
+<li><a href="http://trentm.com/json/">jsontool</a> - a nifty utility to traverse JSON documents.</li>
 </ul>
 
 
@@ -51,14 +51,11 @@
 
 <p>Before we can begin we&rsquo;ve to set up a few things, I&rsquo;ll not go into detail how to set up FiFo, there is a [good manual] for that with only like 5 steps required. So lets start at some of the script&rsquo;s variables:</p>
 
-<p>```bash</p>
-
-<h1>/usr/bin/env bash</h1>
-
-<p>PACKAGE=&ldquo;small&rdquo;
-DATASET=&ldquo;base64-1.9.1&rdquo;
-NET=&ldquo;7df94bc3-6a9f-4c88-8f80-7a8f4086b79d&rdquo;
-```</p>
+<pre><code class="bash">#/usr/bin/env bash
+PACKAGE="small"
+DATASET="base64-1.9.1"
+NET="7df94bc3-6a9f-4c88-8f80-7a8f4086b79d"
+</code></pre>
 
 <ul>
 <li><code>smal</code> is the name of the package created in FiFo, I picked something with 512MB of memory since that should be enough for now.</li>
@@ -67,137 +64,91 @@ NET=&ldquo;7df94bc3-6a9f-4c88-8f80-7a8f4086b79d&rdquo;
 </ul>
 
 
-<p>```bash
-schroedinger:fifopy heinz [master] $ fifo packages list</p>
-
-<pre><code>                            UUID Name       RAM        CPU cap    Quota
+<pre><code class="bash">schroedinger:fifopy heinz [master] $ fifo packages list
+                                UUID Name       RAM        CPU cap    Quota
+------------------------------------ ---------- ---------- ---------- ----------
+5f9f6c41-d700-4b4f-80f1-7350a71ed2e6 small      512 MB     100%       10 GB
+schroedinger:fifopy heinz [master] $ fifo networks list
+                                UUID Name       Tag                  First            Last
+------------------------------------ ---------- ---------- --------------- ---------------
+7df94bc3-6a9f-4c88-8f80-7a8f4086b79d test       admin        192.168.0.210   192.168.0.220
+schroedinger:fifopy heinz [master] $ fifo datasets list
+                                UUID Name       Version Type  Description
+------------------------------------ ---------- ------- ----- ----------
+60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4 base       1.9.1   zone  A SmartOS ...
 </code></pre>
-
-<hr />
-
-<p>5f9f6c41-d700-4b4f-80f1-7350a71ed2e6 small      512 MB     100%       10 GB
-schroedinger:fifopy heinz [master] $ fifo networks list</p>
-
-<pre><code>                            UUID Name       Tag                  First            Last
-</code></pre>
-
-<hr />
-
-<p>7df94bc3-6a9f-4c88-8f80-7a8f4086b79d test       admin        192.168.0.210   192.168.0.220
-schroedinger:fifopy heinz [master] $ fifo datasets list</p>
-
-<pre><code>                            UUID Name       Version Type  Description
-</code></pre>
-
-<hr />
-
-<p>60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4 base       1.9.1   zone  A SmartOS &hellip;
-```</p>
 
 <h3>Creating a VM with riak installed</h3>
 
 <p>Creating a VM is rather simple we need a little JSON and pipe it to fifo with a cat. Please note the section reading <code>user-script</code> here we make the setup. Here is how it looks.</p>
 
-<p><code>bash
-cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
+<pre><code class="bash">cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
 {
   "alias": "riak1",
   "networks": {"net0": "$NET"},
   "metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak"}
 }
 EOF
-</code></p>
+</code></pre>
 
 <p>To get a bit better look user script section and remove the escape things:</p>
 
-<p>```bash</p>
-
-<h1>We configure pkgin to use the european mirror you might not need to do that.</h1>
-
-<p>/opt/local/bin/sed -i.bak &ldquo;s/pkgsrc/pkgsrc-eu-ams/&rdquo; /opt/local/etc/pkgin/repositories.conf;</p>
-
-<h1>We update the pkgin database and install riak</h1>
-
-<p>/opt/local/bin/pkgin update;
-/opt/local/bin/pkgin -y install riak;</p>
-
-<h1>We find out what IP our VM has from within the VM.</h1>
-
-<p>export IP=<code>ifconfig net0 | head -n 2 | tail -n 1 | awk '{print $2}'</code>;</p>
-
-<h1>We update the app.config and vm.args to use the &lsquo;public&rsquo; ip instead of the 127.0.0.1</h1>
-
-<p>/opt/local/bin/sed -i.bak &ldquo;s/127.0.0.1/$IP/&rdquo; /opt/local/etc/riak/app.config;
-/opt/local/bin/sed -i.bak &ldquo;s/127.0.0.1/$IP/&rdquo; /opt/local/etc/riak/vm.args;</p>
-
-<h1>Start epmd and riak</h1>
-
-<p>svcadm enable epmd riak
-```</p>
+<pre><code class="bash"># We configure pkgin to use the european mirror you might not need to do that.
+/opt/local/bin/sed -i.bak "s/pkgsrc/pkgsrc-eu-ams/" /opt/local/etc/pkgin/repositories.conf;
+# We update the pkgin database and install riak
+/opt/local/bin/pkgin update;
+/opt/local/bin/pkgin -y install riak;
+# We find out what IP our VM has from within the VM.
+export IP=`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print $2}'`;
+# We update the app.config and vm.args to use the 'public' ip instead of the 127.0.0.1
+/opt/local/bin/sed -i.bak "s/127.0.0.1/$IP/" /opt/local/etc/riak/app.config;
+/opt/local/bin/sed -i.bak "s/127.0.0.1/$IP/" /opt/local/etc/riak/vm.args;
+# Start epmd and riak
+svcadm enable epmd riak
+</code></pre>
 
 <h3>Waiting for riak</h3>
 
 <p>Now that is the first zone set up next we&rsquo;ll want to wait for riak to properly start up. This is needed since the commands are asynchronous and installing the packages can be a tad slow. But we can just to curl the http interface to check for this, so it&rsquo;s rather simple:</p>
 
-<p>```bash</p>
-
-<h1>We&rsquo;ll ask fifo for the IP of our first zone.</h1>
-
-<p>IP1=<code>fifo vms get riak1 | json networks[0].ip</code></p>
-
-<h1>Print some info so waiting is not so boring</h1>
-
-<p>echo -n &lsquo;Waiting until riak is up and running on the primary node.&rsquo;</p>
-
-<h1>now we curl the http interface every second to see if things are good.</h1>
-
-<p>until curl <a href="http://$">http://$</a>{IP1}:8098 2>/dev/null >/dev/null
-do</p>
-
-<pre><code>sleep 1
-echo -n '.'
+<pre><code class="bash"># We'll ask fifo for the IP of our first zone.
+IP1=`fifo vms get riak1 | json networks[0].ip`
+# Print some info so waiting is not so boring
+echo -n 'Waiting until riak is up and running on the primary node.'
+# now we curl the http interface every second to see if things are good.
+until curl http://${IP1}:8098 2&gt;/dev/null &gt;/dev/null
+do
+    sleep 1
+    echo -n '.'
+done
+# and we're done!
+echo " done."
 </code></pre>
-
-<p>done</p>
-
-<h1>and we&rsquo;re done!</h1>
-
-<p>echo &ldquo; done.&rdquo;
-```</p>
 
 <h3>Setting up the remaining zones</h3>
 
 <p>We&rsquo;re not going to get into too much details with this since it is pretty much working the same as the first VM with the only difference that the user-script holds two more lines:</p>
 
-<p>```bash
-for i in 2 3 4 5
-do</p>
-
-<pre><code>cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
-</code></pre>
-
-<p>  {</p>
-
-<pre><code>"alias": "riak${i}",
-"networks": {"net0": "$NET"},
-"metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak; sleep 10; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit"}
-</code></pre>
-
-<p>  }
-EOF</p>
-
-<pre><code>IP=`fifo vms get riak$i | json networks[0].ip`
-echo -n "Waiting untill riak is up and running on the node $i."
-until curl http://${IP}:8098 2&gt;/dev/null &gt;/dev/null
+<pre><code class="bash">for i in 2 3 4 5
 do
-    sleep 1
-    echo -n '.'
-done
-echo " done."
-</code></pre>
+    cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
+  {
+    "alias": "riak${i}",
+    "networks": {"net0": "$NET"},
+    "metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak; sleep 10; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit"}
+  }
+EOF
+    IP=`fifo vms get riak$i | json networks[0].ip`
+    echo -n "Waiting untill riak is up and running on the node $i."
+    until curl http://${IP}:8098 2&gt;/dev/null &gt;/dev/null
+    do
+        sleep 1
+        echo -n '.'
+    done
+    echo " done."
 
-<p>done
-```</p>
+done
+</code></pre>
 
 <p>The two new lines are joining the node to the existing riak node which is quite easy, we can use $IP1 we generated in the first step too:
 <code>bash
@@ -240,15 +191,11 @@ echo " done."
 
 <p><code>riak_test</code> offers a way to start instances of your application and communicate with them, the common pattern is to start one (or more) nodes as first part of the script and check of they are up and running. That could look something like this:</p>
 
-<p>```erlang
-confirm() &ndash;></p>
-
-<pre><code>[Node] = rt:deploy_nodes(1),
-?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
-pass.
+<pre><code class="erlang">confirm() -&gt;
+    [Node] = rt:deploy_nodes(1),
+    ?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
+    pass.
 </code></pre>
-
-<p>```</p>
 
 <p>This is a minimal test it sets up one instance of our application and waits for it to be ready.</p>
 
@@ -266,28 +213,22 @@ pass.
 
 <p>So backchannel to the rescue! We&rsquo;ll just get the nodes configuration from the host, for my application I store this kind of information in the application configuration so I&rsquo;ve made a function that given a <code>Node</code> returns <code>IP</code> and <code>Port</code> for it to talk to plus one to send data:</p>
 
-<p>```erlang
-node_endpoing(Node) &ndash;></p>
+<pre><code class="erlang">node_endpoing(Node) -&gt;
+    {ok, IP} = rpc:call(Node, application, get_env, [mdns_server_lib, ip]),
+    {ok, Port} = rpc:call(Node, application, get_env, [mdns_server_lib, port]),
+    {IP, Port}.
 
-<pre><code>{ok, IP} = rpc:call(Node, application, get_env, [mdns_server_lib, ip]),
-{ok, Port} = rpc:call(Node, application, get_env, [mdns_server_lib, port]),
-{IP, Port}.
+call(Node, Msg) -&gt;
+    {IP, Port} = node_endpoing(Node),
+    lager:debug("~s:~p &lt;- ~p", [IP, Port, Msg]),
+    {ok, Socket} = gen_tcp:connect(IP, Port, [binary, {active,false}, {packet,4}], 100),
+    ok = gen_tcp:send(Socket, term_to_binary(Msg)),
+    {ok, Repl} = gen_tcp:recv(Socket, 0),
+    {reply, Res} = binary_to_term(Repl),
+    lager:debug("~s:~p -&gt; ~p", [IP, Port, Res]),
+    gen_tcp:close(Socket),
+    Res.
 </code></pre>
-
-<p>call(Node, Msg) &ndash;></p>
-
-<pre><code>{IP, Port} = node_endpoing(Node),
-lager:debug("~s:~p &lt;- ~p", [IP, Port, Msg]),
-{ok, Socket} = gen_tcp:connect(IP, Port, [binary, {active,false}, {packet,4}], 100),
-ok = gen_tcp:send(Socket, term_to_binary(Msg)),
-{ok, Repl} = gen_tcp:recv(Socket, 0),
-{reply, Res} = binary_to_term(Repl),
-lager:debug("~s:~p -&gt; ~p", [IP, Port, Res]),
-gen_tcp:close(Socket),
-Res.
-</code></pre>
-
-<p>```</p>
 
 <p>There is some <code>gen_tcp</code> stuff in there but lets just ignore it for now it&rsquo;s detail not important, the first function is the more interesting one it uses the <code>rpc</code> module to execute the commands on the node we just started which is quite awesome.</p>
 
@@ -297,21 +238,17 @@ Res.
 
 <p>With <code>call/2</code> we&rsquo;ve now a way to send data directly to the node over the official API channel so lets add to our test. So lets get back to our <code>confirm/0</code> and add some real tests:</p>
 
-<p>```erlang
-confirm() &ndash;></p>
-
-<pre><code>[Node] = rt:deploy_nodes(1),
-?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
-?assertEqual({ok,[]},
-             rt_sniffle:call(Node, {vm, list})),
-?assertEqual(ok,
-             rt_sniffle:call(Node, {vm, register, &lt;&lt;"vmid"&gt;&gt;, &lt;&lt;"hypervisor"&gt;&gt;})),
-?assertEqual({ok,[&lt;&lt;"vmid"&gt;&gt;]},
-             rt_sniffle:call(Node, {vm, list})),                 
-pass.
+<pre><code class="erlang">confirm() -&gt;
+    [Node] = rt:deploy_nodes(1),
+    ?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
+    ?assertEqual({ok,[]},
+                 rt_sniffle:call(Node, {vm, list})),
+    ?assertEqual(ok,
+                 rt_sniffle:call(Node, {vm, register, &lt;&lt;"vmid"&gt;&gt;, &lt;&lt;"hypervisor"&gt;&gt;})),
+    ?assertEqual({ok,[&lt;&lt;"vmid"&gt;&gt;]},
+                 rt_sniffle:call(Node, {vm, list})),                 
+    pass.
 </code></pre>
-
-<p>```</p>
 
 <p>It&rsquo;s as easy as this, this test will</p>
 
@@ -347,16 +284,12 @@ pass.
 
 <p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changed to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
 
-<p><code>``
----riak_test--------- (bashos master tree)
-  </code>&mdash;-riak_core&mdash;&mdash;&ndash; (modifications to make riak_test work with core apps)</p>
-
-<pre><code>` `  `---sniffle- (tests for sniffle)
- ` `---snarl----- (tests for snarl)
-  `---howl------- (tests for howl)
+<pre><code>---riak_test--------- (bashos master tree)
+   `---riak_core----- (modifications to make riak_test work with core apps)
+    ` `  `---sniffle- (tests for sniffle)
+     ` `---snarl----- (tests for snarl)
+      `---howl------- (tests for howl)
 </code></pre>
-
-<p>```</p>
 
 <p>We&rsquo;ll go over this and setting up tests for the <a href="https://github.com/project-fifo/howl">howl application</a> it&rsquo;s rather small and simple and it&rsquo;s easier to follow along with something real instead of a made up situation.</p>
 
@@ -364,19 +297,17 @@ pass.
 
 <p>Step one of getting started is to get a clone from the <code>riak_test</code> repository, that&rsquo;s pretty simple (alter the path if you decided to fork):</p>
 
-<p><code>
-cd ~/Projects
+<pre><code>cd ~/Projects
 git clone https://github.com/Licenser/riak_test.git
 cd riak_test
-</code></p>
+</code></pre>
 
 <p>Now we branch of to have a place to get our howl application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
 
-<p><code>
-git checkout riak_core
+<pre><code>git checkout riak_core
 git branch howl
 git checkout howl
-</code></p>
+</code></pre>
 
 <p>Okay that&rsquo;s it for the basic setup not that bad so far is it?</p>
 
@@ -386,75 +317,56 @@ git checkout howl
 
 <p><code>riak_test</code> looks for the configuration file <code>~/.riak_test.config</code> and reads all the data from there so we&rsquo;ll first need to copy the sample config there:</p>
 
-<p><code>
-cp riak_test.config.sample ~/.riak_test.config
-</code></p>
+<pre><code>cp riak_test.config.sample ~/.riak_test.config
+</code></pre>
 
 <p>Next step is to open it in your favourite editor, you&rsquo;ll recognise it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
 
 <p>So lets go down to where it reads:</p>
 
-<p><code>erlang
-%% ===============================================================
+<pre><code class="erlang">%% ===============================================================
 %%  Project-specific configurations
 %% ===============================================================
-</code></p>
+</code></pre>
 
-<p>Here is where the fun starts, you&rsquo;ll see a tuple starting with <code>{rtdev,</code> &ndash; note this <code>rtdev</code> has nothing whatsoever to do with the <code>rtdev</code> that is in the <code>default</code> section as <code>{rt_harness, rtdev}</code>. The <code>rtdev</code> in the project part is just the name of the project, since your project is named <code>howl</code> not <code>rtdev</code> we&rsquo;ll go and change that first.</p>
+<p>Here is where the fun starts, you&rsquo;ll see a tuple starting with <code>{rtdev,</code> - note this <code>rtdev</code> has nothing whatsoever to do with the <code>rtdev</code> that is in the <code>default</code> section as <code>{rt_harness, rtdev}</code>. The <code>rtdev</code> in the project part is just the name of the project, since your project is named <code>howl</code> not <code>rtdev</code> we&rsquo;ll go and change that first.</p>
 
-<p><code>erlang
-{rtdev, [
-</code></p>
+<pre><code class="erlang">{rtdev, [
+</code></pre>
 
 <p>Now we can go to set up some variables first up the project name and executables, the name itself is just for information (or if you use <code>giddyup</code>) the executables are how your application is started, since our application is named <code>howl</code> it&rsquo;s started with the command <code>howl</code> and the admin command for it is <code>howl-admin</code>.</p>
 
-<p>```erlang</p>
+<pre><code class="erlang">    %% The name of the project/product, used when fetching the test
+    %% suite and reporting.
+    {rt_project, "howl"},
 
-<pre><code>%% The name of the project/product, used when fetching the test
-%% suite and reporting.
-{rt_project, "howl"},
-
-{rc_executable, "howl"},
-{rc_admin, "howl-admin"},
+    {rc_executable, "howl"},
+    {rc_admin, "howl-admin"},
 </code></pre>
-
-<p>```</p>
 
 <p>With that done come the services, those are the buggers you register in your _app.erl file, lets have a look at the howl_app.erl:</p>
 
-<p>```erlang
-%&hellip;</p>
-
-<pre><code>        ok = riak_core_node_watcher:service_up(howl, self()),
+<pre><code class="erlang">%...
+            ok = riak_core_node_watcher:service_up(howl, self()),
+%...
 </code></pre>
-
-<p>%&hellip;
-```</p>
 
 <p>So we only have one service here we need to watch out for, named, you might guess … right <code>howl</code> that makes the list rather short:</p>
 
-<p>```erlang</p>
-
-<pre><code>{rc_services, [howl]},
+<pre><code class="erlang">    {rc_services, [howl]},
 </code></pre>
-
-<p>```</p>
 
 <p>Now the cookie, it&rsquo;s a bit hidden in the code that you need to set it but you do, you will need this later so remember it! Since I am bad at remembering things I named it … <code>howl</code> … again.</p>
 
-<p>```erlang</p>
-
-<pre><code>{rt_cookie, howl},
+<pre><code class="erlang">    {rt_cookie, howl},
 </code></pre>
-
-<p>```</p>
 
 <p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>/Users/heinz/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
 
 <ul>
-<li><code>test</code> &ndash; the most unstable branch.</li>
-<li><code>dev</code> &ndash; here things go that should work.</li>
-<li><code>master</code> &ndash; only full releases go in here.</li>
+<li><code>test</code> - the most unstable branch.</li>
+<li><code>dev</code> - here things go that should work.</li>
+<li><code>master</code> - only full releases go in here.</li>
 </ul>
 
 
@@ -462,72 +374,64 @@ cp riak_test.config.sample ~/.riak_test.config
 
 <p>Note that by default <code>riak_test</code> will run tests on the <code>current</code> environment</p>
 
-<p>```erlang</p>
+<pre><code class="erlang">    %% Paths to the locations of various versions of the project. This
+    %% is only valid for the `rtdev' harness.
+    {rtdev_path, [
+                  %% This is the root of the built `rtdev' repository,
+                  %% used for manipulating the repo with git. All
+                  %% versions should be inside this directory.
+                  {root, "/Users/heinz/rt/howl"},
 
-<pre><code>%% Paths to the locations of various versions of the project. This
-%% is only valid for the `rtdev' harness.
-{rtdev_path, [
-              %% This is the root of the built `rtdev' repository,
-              %% used for manipulating the repo with git. All
-              %% versions should be inside this directory.
-              {root, "/Users/heinz/rt/howl"},
+                  %% The path to the `current' version, which is used
+                  %% exclusively except during upgrade tests.
+                  {current, "/Users/heinz/rt/howl/howl-test"},
 
-              %% The path to the `current' version, which is used
-              %% exclusively except during upgrade tests.
-              {current, "/Users/heinz/rt/howl/howl-test"},
+                  %% The path to the most immediately previous version
+                  %% of the project, which is used when doing upgrade
+                  %% tests.
+                  {previous, "/Users/heinz/rt/howl/howl-dev"},
 
-              %% The path to the most immediately previous version
-              %% of the project, which is used when doing upgrade
-              %% tests.
-              {previous, "/Users/heinz/rt/howl/howl-dev"},
-
-              %% The path to the version before `previous', which
-              %% is used when doing upgrade tests.
-              {legacy, "/Users/heinz/rt/howl/howl-stable"}
-             ]}
+                  %% The path to the version before `previous', which
+                  %% is used when doing upgrade tests.
+                  {legacy, "/Users/heinz/rt/howl/howl-stable"}
+                 ]}
+]}
 </code></pre>
-
-<p>]}
-```</p>
 
 <p>And that&rsquo;s it now the config is set up and should look like this:</p>
 
-<p>```erlang
-{rtdev, [</p>
+<pre><code class="erlang">{rtdev, [
+    %% The name of the project/product, used when fetching the test
+    %% suite and reporting.
+    {rt_project, "howl"},
 
-<pre><code>%% The name of the project/product, used when fetching the test
-%% suite and reporting.
-{rt_project, "howl"},
+    {rc_executable, "rhowl"},
+    {rc_admin, "howl-admin"},
+    {rc_services, [howl]},
+    {rt_cookie, howl},
+    %% Paths to the locations of various versions of the project. This
+    %% is only valid for the `rtdev' harness.
+    {rtdev_path, [
+                  %% This is the root of the built `rtdev' repository,
+                  %% used for manipulating the repo with git. All
+                  %% versions should be inside this directory.
+                  {root, "/Users/heinz/rt/howl"},
 
-{rc_executable, "rhowl"},
-{rc_admin, "howl-admin"},
-{rc_services, [howl]},
-{rt_cookie, howl},
-%% Paths to the locations of various versions of the project. This
-%% is only valid for the `rtdev' harness.
-{rtdev_path, [
-              %% This is the root of the built `rtdev' repository,
-              %% used for manipulating the repo with git. All
-              %% versions should be inside this directory.
-              {root, "/Users/heinz/rt/howl"},
+                  %% The path to the `current' version, which is used
+                  %% exclusively except during upgrade tests.
+                  {current, "/Users/heinz/rt/howl/howl-test"},
 
-              %% The path to the `current' version, which is used
-              %% exclusively except during upgrade tests.
-              {current, "/Users/heinz/rt/howl/howl-test"},
+                  %% The path to the most immediately previous version
+                  %% of the project, which is used when doing upgrade
+                  %% tests.
+                  {previous, "/Users/heinz/rt/howl/howl-dev"},
 
-              %% The path to the most immediately previous version
-              %% of the project, which is used when doing upgrade
-              %% tests.
-              {previous, "/Users/heinz/rt/howl/howl-dev"},
-
-              %% The path to the version before `previous', which
-              %% is used when doing upgrade tests.
-              {legacy, "/Users/heinz/rt/howl/howl-stable"}
-             ]}
+                  %% The path to the version before `previous', which
+                  %% is used when doing upgrade tests.
+                  {legacy, "/Users/heinz/rt/howl/howl-stable"}
+                 ]}
+]}
 </code></pre>
-
-<p>]}
-```</p>
 
 <h2>Setting up the application</h2>
 
@@ -535,44 +439,39 @@ cp riak_test.config.sample ~/.riak_test.config
 
 <p>The first step is that we need the folder, so lets create it</p>
 
-<p><code>
-mkdir -p /Users/heinz/rt/raw/howl
+<pre><code>mkdir -p /Users/heinz/rt/raw/howl
 cd /Users/heinz/rt/raw/howl
-</code></p>
+</code></pre>
 
 <p>Since howl lives with the octocat on github it&rsquo;s easy to fetch our application and checkout the test branch (remember <code>current</code> is on the test branch for me):</p>
 
-<p><code>
-git clone https://github.com/project-fifo/howl.git howl-test
+<pre><code>git clone https://github.com/project-fifo/howl.git howl-test
 cd howl-test
 git checkout test
-</code></p>
+</code></pre>
 
 <p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying the.</p>
 
-<p><code>
-make stagedevrel
-</code></p>
+<pre><code>make stagedevrel
+</code></pre>
 
 <p>Now we&rsquo;ve to do a bit of a cheating, riak_text expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set up as git repositor.</p>
 
-<p>```
-mkdir -p /Users/heinz/rt/howl
+<pre><code>mkdir -p /Users/heinz/rt/howl
 cd /Users/heinz/rt/howl
-git init</p>
+git init
 
-<p>cat &lt;<EOF > /Users/heinz/rt/howl/.gitignore
-<em>/dev/</em>/bin
-<em>/dev/</em>/erts-<em>
-</em>/dev/<em>/lib
-</em>/dev/*/releases
+cat &lt;&lt;EOF &gt; /Users/heinz/rt/howl/.gitignore
+*/dev/*/bin
+*/dev/*/erts-*
+*/dev/*/lib
+*/dev/*/releases
 EOF
-```</p>
+</code></pre>
 
 <p>Now we need to link our devrel files and for my setup I&rsquo;ve to copy the <code>*.example</code> files of the <code>app.config</code> and <code>vm.args</code> into the right place they might be named differently for you.</p>
 
-<p>```
-export RT_BASE=/Users/heinz/rt/howl/howl-test
+<pre><code>export RT_BASE=/Users/heinz/rt/howl/howl-test
 export RC_BASE=/Users/heinz/rt/raw/howl/howl-test
 for i in 1 2 3 4
 do
@@ -583,32 +482,30 @@ do
   ln -s ${RC_BASE}/dev/dev${i}/{bin,erts-*,lib,releases} .
   cp ${RC_BASE}/dev/dev${i}/etc/vm.args.example etc/vm.args
   cp ${RC_BASE}/dev/dev${i}/etc/app.config.example etc/app.config
-done</p>
+done
+</code></pre>
 
-<p>```</p>
-
-<p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie &ndash; I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
+<p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie - I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
 
 <p>That&rsquo;s it.</p>
 
 <h2>Running a first test</h2>
 
-<p>In the <code>riak_core</code> branch of <code>riak_test</code> I&rsquo;ve moved all the <code>riak_kv</code> specific tests from <code>tests</code> to <code>tests_riakkv</code> so you still can look at them but I left one of them in <code>tests</code>, namely the basic command test &ndash; it will check if your applications command (<code>howl</code> in our case) is well behaved.</p>
+<p>In the <code>riak_core</code> branch of <code>riak_test</code> I&rsquo;ve moved all the <code>riak_kv</code> specific tests from <code>tests</code> to <code>tests_riakkv</code> so you still can look at them but I left one of them in <code>tests</code>, namely the basic command test - it will check if your applications command (<code>howl</code> in our case) is well behaved.</p>
 
 <p>We&rsquo;ll want to run it to see if <code>howl</code> is a good boy and does well to do so we&rsquo;ll need to get back into the <code>riak_test</code> folder and run the <code>riak_test</code> command:</p>
 
-<p><code>
-cd ~/Projects/riak_test
+<pre><code>cd ~/Projects/riak_test
 ./riak_test -t tests/* -c howl -v -b none
-</code></p>
+</code></pre>
 
 <p>I&rsquo;d like to explain this a bit, the arguments have the following meaning:</p>
 
 <ul>
-<li><code>-t tests/*</code> &ndash; we&rsquo;ll be running all tests in the folder <code>tests/</code>.</li>
-<li><code>-c howl</code> &ndash; our application we want to test is named howl, this is the first element of the tuple we put in our config file when you remember.</li>
-<li><code>-v</code> &ndash; This just turns on verbose output.</li>
-<li><code>-b none</code> &ndash; This is still a relict from the <code>riak_kv</code> roots, it means which backend to test with, since we don&rsquo;t have backends at all we&rsquo;ll just pass none which means riak_test will happily ignore it.</li>
+<li><code>-t tests/*</code> - we&rsquo;ll be running all tests in the folder <code>tests/</code>.</li>
+<li><code>-c howl</code> - our application we want to test is named howl, this is the first element of the tuple we put in our config file when you remember.</li>
+<li><code>-v</code> - This just turns on verbose output.</li>
+<li><code>-b none</code> - This is still a relict from the <code>riak_kv</code> roots, it means which backend to test with, since we don&rsquo;t have backends at all we&rsquo;ll just pass none which means riak_test will happily ignore it.</li>
 </ul>
 
 

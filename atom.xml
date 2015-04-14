@@ -4,7 +4,7 @@
   <title><![CDATA[Lice!]]></title>
   <link href="http://blog.licenser.net/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2014-11-29T10:41:18+01:00</updated>
+  <updated>2015-04-14T11:55:55+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -91,7 +91,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>As a disclaimer: the problem is still a mystery and will probably remain so forever. Also all documentation linked is from the time the bug was filed (thanks for versioning) to give a fair picture of what was available back then.</p>
 
-<h1>Act 3 &ndash; the mailing list</h1>
+<h1>Act 3 - the mailing list</h1>
 
 <p>The history of this case starts a bit into the history of the whole story, but for now lets skip the first part and look at the first time we (as in the FiFo team) came aware of the problem: <a href="https://groups.google.com/forum/#!topic/project-fifo/MZJYOs-CtP8">A mail to the mailing list and the conversation following it</a>.</p>
 
@@ -107,7 +107,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>To receive the best possible support there are some things Gordon could have done, the initial mail could have contained more information, the tone could have been different — jokes often communicate badly over written text, and following Marks request to go through the checklist had probably helped too if only to get some additional facts for later.</p>
 
-<h1>Act 4 &ndash; IRC</h1>
+<h1>Act 4 - IRC</h1>
 
 <p>Marks suggested to swap to IRC for a quicker communication, we all hate mail ping pong I guess. Fortunately we <a href="http://echelog.com/logs/browse/project-fifo/1382914800">keep logs</a> of the FiFo channel to make it easy to google for known problems that were discussed before — in this case it allows us to look at the conversation between Mark (aka trentster) and Gordon (g-flemming).</p>
 
@@ -123,9 +123,9 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>The lesson to learn here for us is to either ask people to include an IRC log in a new ticket or do it ourselves after they create it, this might have added some additional info to the ticket that was not present when it was created.</p>
 
-<h1>Act 5 &ndash; The ticketing system</h1>
+<h1>Act 5 - The ticketing system</h1>
 
-<p>Now this is where my part in the story starts, just as before I&rsquo;ll try to give some additional insight on what I was thinking at this time to shed a bit of light on my end &ndash; I obviously can&rsquo;t do the same for Gordon.</p>
+<p>Now this is where my part in the story starts, just as before I&rsquo;ll try to give some additional insight on what I was thinking at this time to shed a bit of light on my end - I obviously can&rsquo;t do the same for Gordon.</p>
 
 <p>As asked by Mark Gordon created a <a href="http://jira.project-fifo.net/browse/FIFO-142">JIRA Ticket</a> with the logs. When seeing the ticket I had already read the mailing list but not the IRC backlog (I don&rsquo;t always do that since I don&rsquo;t want to spend too much time reading old things that might not even affect me). From the ML I have already an unhappy feeling towards the issue as it looked to me that Gordon was not willing to put much effort into resolving the issue.</p>
 
@@ -143,7 +143,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>Mark while out of the picture already could have included the chat history in the ticket when seeing that Gordon did not — this admittedly is asking a lot.</p>
 
-<h1>Act 0 &ndash; how everything started</h1>
+<h1>Act 0 - how everything started</h1>
 
 <p>I know this is the wrong order, but Star Wars got away with it too. Now after the fact I know more then I did before. Reading Gordon&rsquo;s blog posts shed some light on the history and I think this is where actually things started to go wrong.</p>
 
@@ -159,7 +159,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>Had we known the surrounding circumstances helping might have been a lot easier.</p>
 
-<h1>Act 1 &ndash; be active in the community</h1>
+<h1>Act 1 - be active in the community</h1>
 
 <p>There is a huge advantage to this. And I don&rsquo;t even mean the fact that the community grows and everyone benefits. Being present in the channel and occasionally talking to people helps you to stay in the loop, know what is going on and what other people face for problems or find for solutions.</p>
 
@@ -171,7 +171,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>I can only talk for me here but I know for a fact that if Gordon or one of his colleges had been around in the channel and were a known face I would have taken the problem more serious. That said I have no idea if that is good or bad that I put community members before strangers.</p>
 
-<h1>Act 2 &ndash; read the fantastic manual</h1>
+<h1>Act 2 - read the fantastic manual</h1>
 
 <p>As Gordon points out FiFo not a trivial application. And he is entirely right, it is not, and there are may reasons for that which I am not going to argue here if that is a good or bad thing I will simply state that I have thought long about every choice I did in FiFo and claim them to be sound.</p>
 
@@ -185,7 +185,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <h2>Act 2 conclusion</h2>
 
-<p>Reading those documents this would probably have saved a lot of time and pain and the fifo team some work. This is a reoccurring problem that we sadly see way too often  &ndash; if anyone has suggestions how to encourage users to read manuals please share the holy grail.</p>
+<p>Reading those documents this would probably have saved a lot of time and pain and the fifo team some work. This is a reoccurring problem that we sadly see way too often  - if anyone has suggestions how to encourage users to read manuals please share the holy grail.</p>
 
 <p>The documents would have given good advice on how to set up a redundant fifo, how to check for problems and perhaps most importantly how to properly report a bug.</p>
 
@@ -371,13 +371,13 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
     <id>http://blog.licenser.net/blog/2013/06/13/a-asynchronous-gced-or-set</id>
     <content type="html"><![CDATA[<p>Following the <a href="http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">article about Asynchronous garbage collection with CRDTs</a> I experimented with <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorsetg.erl">implementing the concept</a>. The OR Set is a very nice data structure for this  since it&rsquo;s rather simple and so is it&rsquo;s garbage!</p>
 
-<p>To garbage collect the <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorset.erl">OR Set</a> we do the following, we take some of the elements of the remove set, and delete them from both the add and the remove set &ndash; this way we save the space for them and generate a new baseline.</p>
+<p>To garbage collect the <a href="https://github.com/Licenser/ecrdt/blob/master/src/vorset.erl">OR Set</a> we do the following, we take some of the elements of the remove set, and delete them from both the add and the remove set - this way we save the space for them and generate a new baseline.</p>
 
 <p>First step was to implement the data structure described to hold the collectable items, I call it a <a href="https://github.com/Licenser/ecrdt/blob/master/src/rot.erl">ROT</a> (Roughly Ordered Tree) it&rsquo;s a nice name for garbage related stuff ;) and it is treeish and mostly ordered.</p>
 
 <p>The interface of the ROT is rather simple, Elements must be time tagged, in the form {Time, Element}. Where time must not be a clock, as long as the Erlang comparison operations work on it to give an order. Then it allows asking for full buckets, and removing buckets based on their hash value and newest message timestamp.</p>
 
-<p>While the elements in a the OR set area already tagged with a timestamp, this timestamp records addition, not deletion so it would be misleading to use them since the ROT would think the remove happened when actually the addition happened and this would violate the rule that no event can travel back behind T<sub>100</sub>. As a result we&rsquo;ll have to double timestamp the removes &ndash; as in add a second when when it was removed.</p>
+<p>While the elements in a the OR set area already tagged with a timestamp, this timestamp records addition, not deletion so it would be misleading to use them since the ROT would think the remove happened when actually the addition happened and this would violate the rule that no event can travel back behind T<sub>100</sub>. As a result we&rsquo;ll have to double timestamp the removes - as in add a second when when it was removed.</p>
 
 <p>So since the ROT has a very similar interface to a G Set (which implemented the remove set before) the change is trivial. <strong>Remove</strong>, <strong>GC</strong> and the <strong>merge</strong> function are more interesting.</p>
 
@@ -514,7 +514,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
     <link href="http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/"/>
     <updated>2013-06-11T15:45:00+02:00</updated>
     <id>http://blog.licenser.net/blog/2013/06/11/asyncronous-garbage-collection-with-crdts</id>
-    <content type="html"><![CDATA[<p>So CRDTs are very very nice data structures awesome for eventual consistent applications like riak, or the components of <a href="http://project-fifo.net">Project-FiFo</a>. So they have one big drawback, most of them collect garbage, and over time that can sum up to a lot making them pretty unpractical in many cases. Collecting this garbage is a bit tricky, since usually it means synchronising the data &ndash; which going back to the eventual consistent stuff prevents either A or P.</p>
+    <content type="html"><![CDATA[<p>So CRDTs are very very nice data structures awesome for eventual consistent applications like riak, or the components of <a href="http://project-fifo.net">Project-FiFo</a>. So they have one big drawback, most of them collect garbage, and over time that can sum up to a lot making them pretty unpractical in many cases. Collecting this garbage is a bit tricky, since usually it means synchronising the data - which going back to the eventual consistent stuff prevents either A or P.</p>
 
 <p>I want to outline some thoughts here how one could deal with this issue. As usual the idea here isn&rsquo;t without tradeoffs, it does impose certain constrains on the systems behaviour and does not fit every behaviour in exchange of allowing garbage to be disposed of without the need of synchronisation. Now then, lets dive right in.</p>
 
@@ -522,7 +522,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>We start with understanding what the garbage is that sums up. To allow CRDTs to work the way we do, they need to store some kind of history or legend of how the current state (version/value) of the CRDT came to existence.</p>
 
-<p>If we look at a OR Set for example the history of this set is stored by recording all elements ever added along with all elements ever deleted &ndash; elements are tagged to be unique too so adding 5, removing 5 and adding 5 again and removing that again, leaves not a data structure with 0 elements but one with 4. That said there are ways to optimise the OR Set bot lets ignore this for the sake of the example. We can&rsquo;t just store an empty list since we need to make sure that when another copy of the same set can recreate the steps even if it just missed one of the events.</p>
+<p>If we look at a OR Set for example the history of this set is stored by recording all elements ever added along with all elements ever deleted - elements are tagged to be unique too so adding 5, removing 5 and adding 5 again and removing that again, leaves not a data structure with 0 elements but one with 4. That said there are ways to optimise the OR Set bot lets ignore this for the sake of the example. We can&rsquo;t just store an empty list since we need to make sure that when another copy of the same set can recreate the steps even if it just missed one of the events.</p>
 
 <p>Actually we could, if we would synchronise all copies, say hey ¯from now on you all agree that the new <strong>baseline</strong> (this is bold since it will come up a few more times) is an empty set from now on. And  doing that we would have garbage collected the OR Set, disposed of data that isn&rsquo;t directly relevant to the current state any more.</p>
 
@@ -619,7 +619,7 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>I&rsquo;ve been working on FiFo for a year now, well first attempts counted a bit longer even, and without exaggerating this was the most amazing year in my life. It has been a blast, I&rsquo;ve learned tons of things, both technical and socially, meet some of the most amazing people I can think of and honestly never have been this happy before.</p>
 
-<p>The whole thing started when I wanted to share a co-located server with some friends who are kind of consoleophobe and I wasn&rsquo;t happy with the approach to give everyone root access. So a solution had to be found but vanilla SmartOS provided none, SDC was making no sense with a single node and too expensive for a hobby system. Everything else was simply not Solaris, period. Adding to it that Deirdré showed me the community, randomly answering a question on twitter with a hint to visit the channel &ndash; which was was incredible surprising after experiencing some of the Linux community… really there was no chance in hell ending up with anything but SmartOS.</p>
+<p>The whole thing started when I wanted to share a co-located server with some friends who are kind of consoleophobe and I wasn&rsquo;t happy with the approach to give everyone root access. So a solution had to be found but vanilla SmartOS provided none, SDC was making no sense with a single node and too expensive for a hobby system. Everything else was simply not Solaris, period. Adding to it that Deirdré showed me the community, randomly answering a question on twitter with a hint to visit the channel - which was was incredible surprising after experiencing some of the Linux community… really there was no chance in hell ending up with anything but SmartOS.</p>
 
 <p>But all in all there was no virtualisation solution that suited what I wanted, not even if I had taken cost out of the equation. And since I refuse to swing the white flag and surrender to something I don&rsquo;t like the only wan was: build one! (also I&rsquo;m crazy about challenges and seeing how far I can push things ;) And after</p>
 
@@ -634,7 +634,7 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Now before we go on I share something that was asked a few times now: why the crazy names and obsession with dogs?</p>
 
-<p>So the story starts with naming the first component, which back then was wiggle (after being very disappointed with my name choice for vmwebadm). Wiggle was the component that gave a unified interface to multiple hypervisors and in the SmartOS channel I had heard that Joyent called it&rsquo;s thing &lsquo;headnode&rsquo;, but for FiFo the goal was never to clone something that already existed and I wanted to make a point of it so here is how the thought chain went: head &ndash;> tail, node &ndash;> nod &ndash;> wiggle, tail&amp;wiggle &ndash;> dog.</p>
+<p>So the story starts with naming the first component, which back then was wiggle (after being very disappointed with my name choice for vmwebadm). Wiggle was the component that gave a unified interface to multiple hypervisors and in the SmartOS channel I had heard that Joyent called it&rsquo;s thing &lsquo;headnode&rsquo;, but for FiFo the goal was never to clone something that already existed and I wanted to make a point of it so here is how the thought chain went: head -> tail, node -> nod -> wiggle, tail&amp;wiggle -> dog.</p>
 
 <p>Now I had a promise to keep, back when I was younger and my brother was even younger (since he is my little brother) he got a pet (as in not real) dog, and I had just learned with a FiFo (First in First out) queue is, I found that Fifo is a amazing name for a dog, so I talked my brother into naming his pet dog Fifo telling hime that if I ever had a dog I&rsquo;d name it Fifo too, that said, I&rsquo;m a man of my word even if it takes over something like 15 years to make good on it.</p>
 
@@ -652,7 +652,7 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Cold migration of VM&rsquo;s from one host to another, and putting them into cold storage / backing them up as a whole.</p>
 
-<p>Well, I could go on and on rambling about crazy ideas for another thousand or so words or so but lets save this for another time. All in all I wanted to say it was an amazing year, amazing to see the community develop, seeing how FiFo gets used and I am hugely excited to see how things continue from here on! I can&rsquo;t wait to see the first 10+ node FiFo setup, hear what people make out of it. See a first adopted UI, people starting to build things around FiFo &ndash; there already is a <a href="https://github.com/bakins/project-fifo-ruby">ruby implementation</a> of the API along with a <a href="https://github.com/bakins/knife-fifo">chef knife thing</a>.</p>
+<p>Well, I could go on and on rambling about crazy ideas for another thousand or so words or so but lets save this for another time. All in all I wanted to say it was an amazing year, amazing to see the community develop, seeing how FiFo gets used and I am hugely excited to see how things continue from here on! I can&rsquo;t wait to see the first 10+ node FiFo setup, hear what people make out of it. See a first adopted UI, people starting to build things around FiFo - there already is a <a href="https://github.com/bakins/project-fifo-ruby">ruby implementation</a> of the API along with a <a href="https://github.com/bakins/knife-fifo">chef knife thing</a>.</p>
 
 <p>So to close: Happy birthday FiFo, thanks to all of you for joining this journey and lets brace for another year of dog-named-components!</p>
 ]]></content>
@@ -678,11 +678,11 @@ better. That alone was worth every second of time invested.</p>
 <p>To build anything we&rsquo;ll need some tools, hammer and nails will not do us much good here so we are going to pick:</p>
 
 <ul>
-<li><a href="http://project-fifo.net">Project FiFo</a> &ndash; my favourite virtualisation tool (I am biassed I wrote it), but it&rsquo;s very easy to set up and very powerful.</li>
-<li><a href="https://github.com/project-fifo/pyfi">The FiFo Console Client</a> &ndash; we want to script things, a UI isn&rsquo;t helpful.</li>
-<li>bash &ndash; the simplest possible scripting tool.</li>
-<li>curl &ndash; since riak offers a http fronted it&rsquo;s a wonderful way to check if the system is up.</li>
-<li><a href="http://trentm.com/json/">jsontool</a> &ndash; a nifty utility to traverse JSON documents.</li>
+<li><a href="http://project-fifo.net">Project FiFo</a> - my favourite virtualisation tool (I am biassed I wrote it), but it&rsquo;s very easy to set up and very powerful.</li>
+<li><a href="https://github.com/project-fifo/pyfi">The FiFo Console Client</a> - we want to script things, a UI isn&rsquo;t helpful.</li>
+<li>bash - the simplest possible scripting tool.</li>
+<li>curl - since riak offers a http fronted it&rsquo;s a wonderful way to check if the system is up.</li>
+<li><a href="http://trentm.com/json/">jsontool</a> - a nifty utility to traverse JSON documents.</li>
 </ul>
 
 
@@ -1098,7 +1098,7 @@ better. That alone was worth every second of time invested.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Here is where the fun starts, you&rsquo;ll see a tuple starting with <code>{rtdev,</code> &ndash; note this <code>rtdev</code> has nothing whatsoever to do with the <code>rtdev</code> that is in the <code>default</code> section as <code>{rt_harness, rtdev}</code>. The <code>rtdev</code> in the project part is just the name of the project, since your project is named <code>howl</code> not <code>rtdev</code> we&rsquo;ll go and change that first.</p>
+<p>Here is where the fun starts, you&rsquo;ll see a tuple starting with <code>{rtdev,</code> - note this <code>rtdev</code> has nothing whatsoever to do with the <code>rtdev</code> that is in the <code>default</code> section as <code>{rt_harness, rtdev}</code>. The <code>rtdev</code> in the project part is just the name of the project, since your project is named <code>howl</code> not <code>rtdev</code> we&rsquo;ll go and change that first.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="p">{</span><span class="n">rtdev</span><span class="p">,</span> <span class="p">[</span>
@@ -1150,9 +1150,9 @@ better. That alone was worth every second of time invested.</p>
 <p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>/Users/heinz/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
 
 <ul>
-<li><code>test</code> &ndash; the most unstable branch.</li>
-<li><code>dev</code> &ndash; here things go that should work.</li>
-<li><code>master</code> &ndash; only full releases go in here.</li>
+<li><code>test</code> - the most unstable branch.</li>
+<li><code>dev</code> - here things go that should work.</li>
+<li><code>master</code> - only full releases go in here.</li>
 </ul>
 
 
@@ -1361,13 +1361,13 @@ better. That alone was worth every second of time invested.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie &ndash; I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
+<p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie - I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
 
 <p>That&rsquo;s it.</p>
 
 <h2>Running a first test</h2>
 
-<p>In the <code>riak_core</code> branch of <code>riak_test</code> I&rsquo;ve moved all the <code>riak_kv</code> specific tests from <code>tests</code> to <code>tests_riakkv</code> so you still can look at them but I left one of them in <code>tests</code>, namely the basic command test &ndash; it will check if your applications command (<code>howl</code> in our case) is well behaved.</p>
+<p>In the <code>riak_core</code> branch of <code>riak_test</code> I&rsquo;ve moved all the <code>riak_kv</code> specific tests from <code>tests</code> to <code>tests_riakkv</code> so you still can look at them but I left one of them in <code>tests</code>, namely the basic command test - it will check if your applications command (<code>howl</code> in our case) is well behaved.</p>
 
 <p>We&rsquo;ll want to run it to see if <code>howl</code> is a good boy and does well to do so we&rsquo;ll need to get back into the <code>riak_test</code> folder and run the <code>riak_test</code> command:</p>
 
@@ -1381,10 +1381,10 @@ better. That alone was worth every second of time invested.</p>
 <p>I&rsquo;d like to explain this a bit, the arguments have the following meaning:</p>
 
 <ul>
-<li><code>-t tests/*</code> &ndash; we&rsquo;ll be running all tests in the folder <code>tests/</code>.</li>
-<li><code>-c howl</code> &ndash; our application we want to test is named howl, this is the first element of the tuple we put in our config file when you remember.</li>
-<li><code>-v</code> &ndash; This just turns on verbose output.</li>
-<li><code>-b none</code> &ndash; This is still a relict from the <code>riak_kv</code> roots, it means which backend to test with, since we don&rsquo;t have backends at all we&rsquo;ll just pass none which means riak_test will happily ignore it.</li>
+<li><code>-t tests/*</code> - we&rsquo;ll be running all tests in the folder <code>tests/</code>.</li>
+<li><code>-c howl</code> - our application we want to test is named howl, this is the first element of the tuple we put in our config file when you remember.</li>
+<li><code>-v</code> - This just turns on verbose output.</li>
+<li><code>-b none</code> - This is still a relict from the <code>riak_kv</code> roots, it means which backend to test with, since we don&rsquo;t have backends at all we&rsquo;ll just pass none which means riak_test will happily ignore it.</li>
 </ul>
 
 
@@ -1401,11 +1401,11 @@ better. That alone was worth every second of time invested.</p>
     <id>http://blog.licenser.net/blog/2013/03/19/plugins-with-erlang</id>
     <content type="html"><![CDATA[<h2>Preamble</h2>
 
-<p>Lets start with this, Erlang releases are super useful they are one of the features I like most about Erlang &ndash; you get out an entirely self contained package you can deploy and forget, no library trouble, no wrong version of the VM no trouble at all.</p>
+<p>Lets start with this, Erlang releases are super useful they are one of the features I like most about Erlang - you get out an entirely self contained package you can deploy and forget, no library trouble, no wrong version of the VM no trouble at all.</p>
 
 <p>BUT (this had to come didn&rsquo;t it) sometimes they are limiting and kind of inflexible, adding a tiny little feature means rolling out a new release, with automated builds that is not so bad but &lsquo;not so bad&rsquo; isn&rsquo;t good either. And things get worst when there are different wishes.</p>
 
-<p>A little glimpse into reality: I&rsquo;m currently working a lot on <a href="http://project-fifo.net">Project FiFo</a> and one of the issues I faced is that &ndash; surprisingly &ndash; not everyone wants things to work exactly as I do. Which was a real shock, how could anyone ever disagree with me? Well &hellip; I got over it, really I did, still solving this issue by adding one code path for every preference and making it configureable didn&rsquo;t looked like a good solution.</p>
+<p>A little glimpse into reality: I&rsquo;m currently working a lot on <a href="http://project-fifo.net">Project FiFo</a> and one of the issues I faced is that - surprisingly - not everyone wants things to work exactly as I do. Which was a real shock, how could anyone ever disagree with me? Well &hellip; I got over it, really I did, still solving this issue by adding one code path for every preference and making it configureable didn&rsquo;t looked like a good solution.</p>
 
 <p>Also recently we are thinking a lot about performance metrics, and there are like a gazillion of them and if you pick two random people I think they want three different sets of metrics. Ask again after 5 minutes and their opinions changed to 7 new metrics and certainly not the old ones!</p>
 
@@ -1413,9 +1413,9 @@ better. That alone was worth every second of time invested.</p>
 
 <p>The problem is a very old one, extending the software after it was shipped, possibly letting the community extend it beyond what was dreamed of in the beginning. The solution is pretty much one day younger then the problem: plugins. Meaning a way to load code into the system.</p>
 
-<p>Sounds easy but it is a bit more complex, just having something load into the VM doesn&rsquo;t do much good when it does not get executed in the proper place &ndash; so sadly this comes with extra work for the developer to sprinkle their code with hooks and callbacks for the plugins.</p>
+<p>Sounds easy but it is a bit more complex, just having something load into the VM doesn&rsquo;t do much good when it does not get executed in the proper place - so sadly this comes with extra work for the developer to sprinkle their code with hooks and callbacks for the plugins.</p>
 
-<p>With this I&rsquo;d like to introduce <a href="https://github.com/Licenser/eplugin">eplugin</a> it&rsquo;s a very simplistic library for exactly that task &ndash; introduce plugins in an Erlang release or application. It takes care of discovering and loading plugins, letting them register into certain calls, a little dependency management on startup and provides functions to call registered plugins. Erlang comes with great tools already to the whole thing sums up to under 400 LOC.</p>
+<p>With this I&rsquo;d like to introduce <a href="https://github.com/Licenser/eplugin">eplugin</a> it&rsquo;s a very simplistic library for exactly that task - introduce plugins in an Erlang release or application. It takes care of discovering and loading plugins, letting them register into certain calls, a little dependency management on startup and provides functions to call registered plugins. Erlang comes with great tools already to the whole thing sums up to under 400 LOC.</p>
 
 <h2>Types of plugins</h2>
 
@@ -1581,7 +1581,7 @@ better. That alone was worth every second of time invested.</p>
 
 <h4>Followup</h4>
 
-<p>Tickets are a two way street, once a ticket is logged the reporter can see it&rsquo;s progress without having to ask &ndash; or at least can ask if it is not handled for a long period. Also it is easier to say &lsquo;hey what is the status if ticket #42&rsquo; where all the information is provided already instead of &lsquo;hey how about that bug that happened when …&rsquo; and have to explain it all over again.</p>
+<p>Tickets are a two way street, once a ticket is logged the reporter can see it&rsquo;s progress without having to ask - or at least can ask if it is not handled for a long period. Also it is easier to say &lsquo;hey what is the status if ticket #42&rsquo; where all the information is provided already instead of &lsquo;hey how about that bug that happened when …&rsquo; and have to explain it all over again.</p>
 
 <h4>Deduplication</h4>
 
@@ -1659,9 +1659,9 @@ better. That alone was worth every second of time invested.</p>
     <link href="http://blog.licenser.net/blog/2013/01/25/erlang-and-dtrace/"/>
     <updated>2013-01-25T00:21:00+01:00</updated>
     <id>http://blog.licenser.net/blog/2013/01/25/erlang-and-dtrace</id>
-    <content type="html"><![CDATA[<p>As part of <a href="http://project-fifo.net">Project FiFo</a> I&rsquo;ve invested some time to research into DTrace and Erlang, not the probes that are there since some time but a DTrace consumer &ndash; letting you execute DTrace scripts from within Erlang and read the results.</p>
+    <content type="html"><![CDATA[<p>As part of <a href="http://project-fifo.net">Project FiFo</a> I&rsquo;ve invested some time to research into DTrace and Erlang, not the probes that are there since some time but a DTrace consumer - letting you execute DTrace scripts from within Erlang and read the results.</p>
 
-<p>The result of this research is the <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> a consumer for DTrace implemented as a Erlang NIF. The NIF is based on the <a href="https://github.com/bcantrill/node-libdtrace">node.js</a> and and <a href="http://tmetsch.github.com/python-dtrace/">python</a> implementations &ndash; many thanks to them!</p>
+<p>The result of this research is the <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> a consumer for DTrace implemented as a Erlang NIF. The NIF is based on the <a href="https://github.com/bcantrill/node-libdtrace">node.js</a> and and <a href="http://tmetsch.github.com/python-dtrace/">python</a> implementations - many thanks to them!</p>
 
 <p>It&rsquo;s pretty easy to consume dtrace data from within erlang with <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> and I figured lets make a little demo. Since I&rsquo;m not a big fan of reinventing the wheel and a simple demo had been done before, namely <a href="http://howtonode.org/heat-tracer">heat-tracer</a>.</p>
 
