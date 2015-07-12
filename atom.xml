@@ -4,7 +4,7 @@
   <title><![CDATA[Lice!]]></title>
   <link href="http://blog.licenser.net/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2015-07-12T16:35:08+02:00</updated>
+  <updated>2015-07-12T16:40:15+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Migrating to Riak3]]></title>
-    <link href="http://blog.licenser.net/blog/2015/07/10/migrating-to-riak3/"/>
+    <title type="html"><![CDATA[Migrating to Rebar3]]></title>
+    <link href="http://blog.licenser.net/blog/2015/07/10/migrating-to-rebar3/"/>
     <updated>2015-07-10T01:11:12+02:00</updated>
-    <id>http://blog.licenser.net/blog/2015/07/10/migrating-to-riak3</id>
+    <id>http://blog.licenser.net/blog/2015/07/10/migrating-to-rebar3</id>
     <content type="html"><![CDATA[<h1>A long journey from rebar2 to rebar3</h1>
 
 <p>Rebar 3 has recently started to surface out of alpha state and entered beta1, about time for the crazy people like me to abandon tried and tested tools to venture into the great vastness of the unknown!</p>
