@@ -133,7 +133,7 @@
 
 <p>The handling of dependencies changed too, <code>skip_deps=true</code> is no longer needed. Nor is <code>-r</code> if you are using a <code>apps/*/...</code> structure for your project. Along with those the <code>-D</code> flag is gone now, it can however the same can be achieved with profiles - later more to that.</p>
 
-<p><code>generate</code> was replaced by <code>release</code> and it now uses <code>relx</code> and not <code>reltool</code>. If you are one of the poor sods (like me) that was using <code>reltool</code> you are into a lot more fun here but that is mostly beyond the scope. If you used <code>rlax</code> before this should be straight forward, just that the config now lives in the <code>rebar.config</code>. It should be noted that this also takes care of linking instead of copying files when used with <code>{dev_mode, true}</code> which can be very nice for developing.</p>
+<p><code>generate</code> was replaced by <code>release</code> and it now uses <code>relx</code> and not <code>reltool</code>. If you are one of the poor sods (like me) that was using <code>reltool</code> you are into a lot more fun here but that is mostly beyond the scope. If you used <code>relx</code> before this should be straight forward, just that the config now lives in the <code>rebar.config</code>. Existing <code>relx.config</code> files will still be used as long as no <code>relx</code> section exists. It should be noted that this also takes care of linking instead of copying files when used with <code>{dev_mode, true}</code> which can be very nice for developing.</p>
 
 <h2>Profiles</h2>
 
