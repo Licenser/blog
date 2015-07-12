@@ -9,7 +9,7 @@
   <meta name="author" content="Heinz N. 'Licenser' Gies">
 
   
-  <meta name="description" content="I&rsquo;ve had some open source projects before, actually quite some, but Project FiFo is by far the most successful one. And aside from the &hellip;">
+  <meta name="description" content="Preamble Lets start with this, Erlang releases are super useful they are one of the features I like most about Erlang - you get out an entirely self &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +77,184 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/19/plugins-with-erlang/">Plugins With Erlang</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-19T16:45:00+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>4:45 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Preamble</h2>
+
+<p>Lets start with this, Erlang releases are super useful they are one of the features I like most about Erlang - you get out an entirely self contained package you can deploy and forget, no library trouble, no wrong version of the VM no trouble at all.</p>
+
+<p>BUT (this had to come didn&rsquo;t it) sometimes they are limiting and kind of inflexible, adding a tiny little feature means rolling out a new release, with automated builds that is not so bad but &lsquo;not so bad&rsquo; isn&rsquo;t good either. And things get worst when there are different wishes.</p>
+
+<p>A little glimpse into reality: I&rsquo;m currently working a lot on <a href="http://project-fifo.net">Project FiFo</a> and one of the issues I faced is that - surprisingly - not everyone wants things to work exactly as I do. Which was a real shock, how could anyone ever disagree with me? Well &hellip; I got over it, really I did, still solving this issue by adding one code path for every preference and making it configureable didn&rsquo;t looked like a good solution.</p>
+
+<p>Also recently we are thinking a lot about performance metrics, and there are like a gazillion of them and if you pick two random people I think they want three different sets of metrics. Ask again after 5 minutes and their opinions changed to 7 new metrics and certainly not the old ones!</p>
+
+<h2>Plugins</h2>
+
+<p>The problem is a very old one, extending the software after it was shipped, possibly letting the community extend it beyond what was dreamed of in the beginning. The solution is pretty much one day younger then the problem: plugins. Meaning a way to load code into the system.</p>
+
+<p>Sounds easy but it is a bit more complex, just having something load into the VM doesn&rsquo;t do much good when it does not get executed in the proper place - so sadly this comes with extra work for the developer to sprinkle their code with hooks and callbacks for the plugins.</p>
+
+<p>With this I&rsquo;d like to introduce <a href="https://github.com/Licenser/eplugin">eplugin</a> it&rsquo;s a very simplistic library for exactly that task - introduce plugins in an Erlang release or application. It takes care of discovering and loading plugins, letting them register into certain calls, a little dependency management on startup and provides functions to call registered plugins. Erlang comes with great tools already to the whole thing sums up to under 400 LOC.</p>
+
+<h2>Types of plugins</h2>
+
+<p>I feel it&rsquo;s kind of interesting to look at the different kind of plugins that exist and how to handle the cases with <a href="https://github.com/Licenser/eplugin">eplugin</a> also a post entirely without code would look boring.</p>
+
+<h3>informative plugins</h3>
+
+<p>Sometimes a plugin just want to know that something happened but don&rsquo;t care about the result. <code>eplugin</code> provides the <code>call</code> (and <code>apply</code>) functions for that. A logger is a good example for this so lets have a look:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
+</span><span class='line'><span class="p">{</span><span class="n">syslog_plugin</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">[{</span><span class="n">syslog_plugin</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">}]}],</span>
+</span><span class='line'>  <span class="p">[]}.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">%%% syslog_plugin.erl</span>
+</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">syslog_plugin</span><span class="p">).</span>
+</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">log</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">log</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
+</span><span class='line'>  <span class="nn">os</span><span class="p">:</span><span class="nf">cmd</span><span class="p">(</span><span class="s">&quot;logger &#39;&quot;</span> <span class="o">++</span> <span class="nv">String</span> <span class="o">++</span> <span class="s">&quot;&#39;&quot;</span><span class="p">).</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">%%% in your code</span>
+</span><span class='line'>  <span class="c">%%... </span>
+</span><span class='line'>  <span class="nn">eplugin</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="s">&quot;logging this!&quot;</span><span class="p">),</span>
+</span><span class='line'>  <span class="c">%%... </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Thats pretty much it, provided you&rsquo;ve started the <code>eplugin</code> application in your code and put the plugins in the right place this will just work. You could also use this to trigger side effects, like delete all files when an error occurs to remove traces of your failure.</p>
+
+<h3>messing around plugins</h3>
+
+<p>This kind of plugins process some data and return a new version of this data, we have <code>fold</code> for this case. Fold since it internally uses fold to pass the data from one plugin to another. there are many applications for that one would be to replace all occurrences of &lsquo;not js&rsquo; with &lsquo;node.js&rsquo; to prevent freudian typos in your texts.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
+</span><span class='line'><span class="p">{</span><span class="n">not_js</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">[{</span><span class="n">not_js</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="n">replace</span><span class="p">}]}],</span>
+</span><span class='line'>  <span class="p">[]}.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">%%% not_js.erl</span>
+</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">not_js</span><span class="p">).</span>
+</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">replace</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
+</span><span class='line'>  <span class="nn">re</span><span class="p">:</span><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">,</span> <span class="s">&quot;not js&quot;</span><span class="p">,</span> <span class="s">&quot;node.js&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">global</span><span class="p">]).</span>
+</span><span class='line'><span class="c">%%% in your code</span>
+</span><span class='line'>  <span class="c">%%... </span>
+</span><span class='line'>  <span class="nv">String1</span> <span class="o">=</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">fold</span><span class="p">(</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="s">&quot;I&#39;m writing a not js application!&quot;</span><span class="p">),</span>
+</span><span class='line'>  <span class="c">%%... </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>fold</code> and <code>call</code> are the most interesting and important kind of plugins, they cover most if not all of the possible use cases of plugins so there is a special case left which I found useful to have.</p>
+
+<h3>checking plugins</h3>
+
+<p>Checking plugins are plugins which are supposed to decide if something is Ok or not, they are pretty much a case of <code>fold</code> that returns true or false (or actually whatever is not true). But <code>eplugin</code> solves this too, with the <code>test</code> function! An example here is authentication</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
+</span><span class='line'><span class="p">{</span><span class="n">get_out</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">[{</span><span class="n">get_out</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="n">no_really_not</span><span class="p">}]}],</span>
+</span><span class='line'>  <span class="p">[]}.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">%%% get_out.erl</span>
+</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">get_out</span><span class="p">).</span>
+</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">no_really_not</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">no_really_not</span><span class="p">(</span><span class="nv">Login</span><span class="p">)</span> <span class="o">-&gt;</span>
+</span><span class='line'>  <span class="p">{</span><span class="n">forbidden</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;Dear &quot;</span><span class="p">,</span> <span class="nv">Login</span><span class="p">,</span> <span class="s">&quot; we don&#39;t want you here go away!&quot;</span><span class="p">]}.</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">%%% in your code</span>
+</span><span class='line'>  <span class="c">%%... </span>
+</span><span class='line'>  <span class="k">case</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">test</span><span class="p">(</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="s">&quot;Licenser&quot;</span><span class="p">)</span> <span class="k">of</span>
+</span><span class='line'>     <span class="n">true</span> <span class="o">-&gt;</span>
+</span><span class='line'>      <span class="c">%%% huzza!</span>
+</span><span class='line'>     <span class="nv">Error</span> <span class="o">-&gt;</span>
+</span><span class='line'>      <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~p~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Error</span><span class="p">])</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="c">%%... </span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -428,6 +606,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/07/10/migrating-to-riak3/">Migrating to Riak3</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/11/28/postmortem-of-a-interesting-bug/">Postmortem of a Interesting Bug</a>
       </li>
     
@@ -441,10 +623,6 @@
     
       <li class="post">
         <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">Asynchronous Garbage Collection With CRDTs</a>
       </li>
     
   </ul>

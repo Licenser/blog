@@ -9,7 +9,7 @@
   <meta name="author" content="Heinz N. 'Licenser' Gies">
 
   
-  <meta name="description" content="Symptoms After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM&rsquo;s in the 3 digit number) a small &hellip;">
+  <meta name="description" content="A long journey from rebar2 to rebar3 Rebar 3 has recently started to surface out of alpha state and entered beta1, about time for the crazy people &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +77,164 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/07/10/migrating-to-riak3/">Migrating to Riak3</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-10T01:11:12+02:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>1:11 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>A long journey from rebar2 to rebar3</h1>
+
+<p>Rebar 3 has recently started to surface out of alpha state and entered beta1, about time for the crazy people like me to abandon tried and tested tools to venture into the great vastness of the unknown!</p>
+
+<p>So with a backpack, hiking shoes, food for about a week and a direct line to the <code>rebar3</code> IRC channel I set off to migrate <a href="https://github.com/project-fifo/sniffle">sniffle</a> from <code>rebar2</code> to <code>rebar3</code>. Now, after it looks like everything is working, I want to write up what exactly went down.</p>
+
+<p>The complete delta can be seen <a href="https://github.com/project-fifo/sniffle/pull/2/files?diff=split">here</a> please be ware that the upgrade kicked of a bit of a chain reaction with updating libraries too.</p>
+
+<h1>3 =/= 2 + 1</h1>
+
+<p>The most important thing I found, or rather the biggest misconception I had, is that <code>rebar3</code> is the next iteration of <code>rebar2</code>. This lead to a lot of misery on my part. <code>rebar3</code> is an entirely different application, the workflow is different, the logic is different and the behavior is different. Just dropping it and expecting everything to keep working the same will not end well. Treat it like migrating to a different build tool and things are a lot easier.</p>
+
+<h1>The simple stuff</h1>
+
+<h2>Folders and files</h2>
+
+<p>Some of the directories change, <code>deps</code> no longer exists and <strong>has to be deleted</strong>. It also can be removed form the <code>.gitignore</code> file. Instead <code>_build</code> now takes its place, somewhat, it&rsquo;s different but it can go into <code>.gitignore</code>.</p>
+
+<p>The same way <code>ebin</code> doesn&rsquo;t exist any longer and <strong>should be deleted</strong>. The former <code>ebin</code> now lives also in <code>_build</code> so we don&rsquo;t need to add anything new to the <code>.gitignore</code> file here. The old <code>ebin</code> will take priority over the <code>.beam</code> files generated in <code>_build</code>. That said I was pointed to the fact that there are valid reasons to have it around, for example to prevent <code>rebar3</code> to generate the <code>.app</code> file from <code>.app.src</code> or if there are additional files compiled by another tool other then <code>rebar3</code>.</p>
+
+<p>Now I said and even said it in bold that those folders <strong>HAVE TO BE DELETED</strong> that is because they do, if not an axe murderer will come by your house and kill your cat, seriously, I was just lucky that I didn&rsquo;t have a cat so he left disappointed. Aside of the axe murderer, <code>rebar3</code> will also rather unexpectedly load things from there, which, unlike then the axe murderer, did affect me and cause quite some headache.</p>
+
+<p>There is a new file, <code>rebar.lock</code> which you want to add to your repository, not ignore it, it will keep track of the versions of libraries that are into the <code>_build</code> directory and that should go there if they don&rsquo;t already exist.</p>
+
+<h2>Commands</h2>
+
+<p>The <code>rebar get-deps</code> is deprecated so is <code>rebar update-deps</code>, you don&rsquo;t need them any more, <code>rebar3</code> figures out itself when dependencies need to be installed or updated (from the <code>rebar.lock</code> file). There is a new <code>rebar3 deps</code> command, which has nothing to do with the old commands, instead it is used to give a list of the dependencies of your project (but not the sub-dependencies).</p>
+
+<p><code>rebar doc</code> is now called <code>rebar3 edoc</code> that should be noted.</p>
+
+<p><code>rebar3 dialyzer</code> is new, it replaces the old workflow of running dialyzer on its own and does all the building and checking <code>.ptl</code> files for you. The old trick of <code>grep</code>-ing away known errors to mitigate them is not working due to the mixed output however I was told that erlang 18 comes with a <a href="http://www.erlang.org/doc/man/dialyzer.html"><code>-dializer</code> pre-compiler directive</a> can be used to handle this. I am not really sure about this especially with third party libraries.</p>
+
+<p>The handling of dependencies changed too, <code>skip_deps=true</code> is no longer needed. Nor is <code>-r</code> if you are using a <code>apps/*/...</code> structure for your project. Along with those the <code>-D</code> flag is gone now, it can however the same can be achieved with profiles - later more to that.</p>
+
+<p><code>generate</code> was replaced by <code>release</code> and it now uses <code>relx</code> and not <code>reltool</code>. If you are one of the poor sods (like me) that was using <code>reltool</code> you are into a lot more fun here but that is mostly beyond the scope. If you used <code>rlax</code> before this should be straight forward, just that the config now lives in the <code>rebar.config</code>. It should be noted that this also takes care of linking instead of copying files when used with <code>{dev_mode, true}</code> which can be very nice for developing.</p>
+
+<h2>Profiles</h2>
+
+<p>Now there is probably a lot to say, it is a way to handle differences in behavior, and can for example replace the <code>-D</code> flag like this: <code>{profiles, [{long, {erl_opts, [{d, LONGTESTS}]}</code>. I haven&rsquo;t fully grasped the power and best practice of this and there is a good <a href="http://www.rebar3.org/docs/profiles">article in the docs</a> about this so I won&rsquo;t dive further into that.</p>
+
+<p>Something worth pointing out before moving on is that <strong>everything</strong> that can be in a <code>rebar.config</code> can be in a profile, including plugins, dependencies, erlang options and so on. This makes it incredibly powerful.</p>
+
+<h2>Plugins</h2>
+
+<p><a href="http://www.rebar3.org/docs/using-available-plugins">Plugins</a> have changed a bit and become a lot more important. Some common tasks in <code>rebar2</code> now live in a plugin instead of being part of the core system. The most notable here is probably the Port Compiler (or <code>pc</code> as the plugin is called) which is used for building NIFs (like eleveldb).</p>
+
+<p>Hex comes as a plugin, which is <strong>really</strong> nice, however the plugin is needed to publish not to fetch dependencies. This plugin could happily go into the global config, yes there is a global config in <code>~/.config/rebar3/rebar.config</code>. However it is best to keep other plugins out there.</p>
+
+<p>The EQC (QuickCheck) plugin is very nice if you have quick check, either the free or the commercial version. It should be pointed out here <strong>not</strong> to put this in the global config, no matter how tempting it is or the axe murderer will come back. Other then that you can now put the properties into a <code>eqc</code> folder and separate them from tests and it is no longer needed to wrap them in <code>-ifdef(EQC)</code>  and <code>-ifdef(TEST)</code>. What is especially nice here is that it picks up on the same naming as <a href="http://quickcheck-ci.com/">quickcheck-ci</a> so that will make things easier.</p>
+
+<h2>Dependencies</h2>
+
+<p>This is a quite big topic, but it can be summed up in: forget everything you know about rebar&rsquo;s handling of dependencies it&rsquo;s invalid now.</p>
+
+<p>Perhaps the most obvious change is that in addition to source dependencies you can now include hex packages. The packages can take the form: <code>dflow</code> as &lsquo;the latest version&rsquo; (or the version fitting to other packages), or as <code>{dflow, "0.1.6"}</code> to pick a specific version (more details <a href="http://elixir-lang.org/docs/stable/elixir/Version.html">here</a>).</p>
+
+<p>Using packages has a huge advantage, they are cached locally which makes fetching them, especially for big projects, <strong>a lot nicer</strong>.</p>
+
+<p>Now my experience with rebar2 was that dependencies were handled by just cloning all of the dependencies in the <code>deps</code> folder and then adding them to the library path. This also had the effect that order didn&rsquo;t really matter. For example you could happily include header files from projects you were not depending on in the application including it.</p>
+
+<p>Now rebar3 is actually caring about what you do. For example I ran into the following situation. I have an application <code>sniffle</code> this application has file <code>include/sniffle_version.hrl</code>. Now <code>sniffle</code> was depending on <code>sniffle_watchdog</code>, however <code>sniffle_watchdig</code> was including <code>include/sniffle_version.hrl</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> +-------------+             +-------------+
+</span><span class='line'> |   sniffle   |&lt;------------|  watchdog   |
+</span><span class='line'> +-------------+             +-------------+
+</span><span class='line'>        |                           ^
+</span><span class='line'>        |                           |
+</span><span class='line'>        |                           |
+</span><span class='line'>        |                           |
+</span><span class='line'>        |                           |
+</span><span class='line'>+-----------------------+               |
+</span><span class='line'>|  sniffle_version.hrl  |---------------+
+</span><span class='line'>+-----------------------+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This setup is no problem with <code>rebar2</code>, those files where in <code>apps/sniffle/include</code> and works great the file exist and that is all that&rsquo;s needed. <strong>However</strong>, with rebar3 this approach is problematic, since  <code>sniffle_watchdog</code> does not depend on <code>sniffle</code> it will not exist when <code>sniffle_watchdog</code> is compiled. This means that I needed to include <code>sniffle</code> in <code>sniffle_watchdog</code> which is not possible since it would create a circlular dependency. The solution for this was simply to put the version header in na own application that gets included into both.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+-------------+             +-------------+
+</span><span class='line'>|   sniffle   |&lt;------------|  watchdog   |
+</span><span class='line'>+-------------+             +-------------+
+</span><span class='line'>       ^                           ^
+</span><span class='line'>       |                           |
+</span><span class='line'>       |                           |
+</span><span class='line'>       |                           |
+</span><span class='line'>       | +-----------------------+ |
+</span><span class='line'>       +-|    sniffle_version    |-+
+</span><span class='line'>         +-----------------------+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Another slightly related topic is that when building releases now the content of the app file matters more, that is probably my own shortcoming that I ran into the problem but I did not include many library applications into the <code>application</code> section of the <code>.app.src</code> file. That lead to them missing in the release and the application dying a horribly painful death. I found the following code snipped rather helpful to track what applications were missing, and then a lot of manual labour to find where they should be included.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ls -1 _build/default/rel/sniffle/lib/  <span class="p">|</span> sed <span class="s1">&#39;s/-.*//g&#39;</span> <span class="p">|</span> sort &gt; rlibs
+</span><span class='line'>ls -1 _build/default/lib <span class="p">|</span> sort &gt; libs
+</span><span class='line'>vimdiff libs rlibs
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>The bottom line</h2>
+
+<p>After working with it a bit I think rebar3, when treated as it&rsquo;s own tool and not a iteration of rebar, is a huge improvement over existing erlang build tools, both erlang.mk, rebar2, and most likely any of the others lurking in the shadows.</p>
+
+<p>The devs are very friendly and responsive and have helped me a great deal during this rather interesting exercise and deserve a lot of credit for the work and for putting up with the involved hatred and anger they receive.</p>
+
+<p>Yes rebar3 is a learning curve and in the beginning it can be quite steep, but so does any other tool to be fair. It still is in beta (for a good reason), but bugs are fixed very fast and the help debugging them is outstanding.</p>
+
+<p>If you require a rock solid tool today it is probably best to wait a bit longer until the final release but that said I have come a full circle, from utter hatred and frustration (on day one) to loving it after a week and will be using it from now on.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1639,184 +1797,6 @@ better. That alone was worth every second of time invested.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/03/19/plugins-with-erlang/">Plugins With Erlang</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-03-19T16:45:00+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>4:45 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Preamble</h2>
-
-<p>Lets start with this, Erlang releases are super useful they are one of the features I like most about Erlang - you get out an entirely self contained package you can deploy and forget, no library trouble, no wrong version of the VM no trouble at all.</p>
-
-<p>BUT (this had to come didn&rsquo;t it) sometimes they are limiting and kind of inflexible, adding a tiny little feature means rolling out a new release, with automated builds that is not so bad but &lsquo;not so bad&rsquo; isn&rsquo;t good either. And things get worst when there are different wishes.</p>
-
-<p>A little glimpse into reality: I&rsquo;m currently working a lot on <a href="http://project-fifo.net">Project FiFo</a> and one of the issues I faced is that - surprisingly - not everyone wants things to work exactly as I do. Which was a real shock, how could anyone ever disagree with me? Well &hellip; I got over it, really I did, still solving this issue by adding one code path for every preference and making it configureable didn&rsquo;t looked like a good solution.</p>
-
-<p>Also recently we are thinking a lot about performance metrics, and there are like a gazillion of them and if you pick two random people I think they want three different sets of metrics. Ask again after 5 minutes and their opinions changed to 7 new metrics and certainly not the old ones!</p>
-
-<h2>Plugins</h2>
-
-<p>The problem is a very old one, extending the software after it was shipped, possibly letting the community extend it beyond what was dreamed of in the beginning. The solution is pretty much one day younger then the problem: plugins. Meaning a way to load code into the system.</p>
-
-<p>Sounds easy but it is a bit more complex, just having something load into the VM doesn&rsquo;t do much good when it does not get executed in the proper place - so sadly this comes with extra work for the developer to sprinkle their code with hooks and callbacks for the plugins.</p>
-
-<p>With this I&rsquo;d like to introduce <a href="https://github.com/Licenser/eplugin">eplugin</a> it&rsquo;s a very simplistic library for exactly that task - introduce plugins in an Erlang release or application. It takes care of discovering and loading plugins, letting them register into certain calls, a little dependency management on startup and provides functions to call registered plugins. Erlang comes with great tools already to the whole thing sums up to under 400 LOC.</p>
-
-<h2>Types of plugins</h2>
-
-<p>I feel it&rsquo;s kind of interesting to look at the different kind of plugins that exist and how to handle the cases with <a href="https://github.com/Licenser/eplugin">eplugin</a> also a post entirely without code would look boring.</p>
-
-<h3>informative plugins</h3>
-
-<p>Sometimes a plugin just want to know that something happened but don&rsquo;t care about the result. <code>eplugin</code> provides the <code>call</code> (and <code>apply</code>) functions for that. A logger is a good example for this so lets have a look:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">syslog_plugin</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">syslog_plugin</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% syslog_plugin.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">syslog_plugin</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">log</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">log</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">os</span><span class="p">:</span><span class="nf">cmd</span><span class="p">(</span><span class="s">&quot;logger &#39;&quot;</span> <span class="o">++</span> <span class="nv">String</span> <span class="o">++</span> <span class="s">&quot;&#39;&quot;</span><span class="p">).</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="nn">eplugin</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="s">&quot;logging this!&quot;</span><span class="p">),</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Thats pretty much it, provided you&rsquo;ve started the <code>eplugin</code> application in your code and put the plugins in the right place this will just work. You could also use this to trigger side effects, like delete all files when an error occurs to remove traces of your failure.</p>
-
-<h3>messing around plugins</h3>
-
-<p>This kind of plugins process some data and return a new version of this data, we have <code>fold</code> for this case. Fold since it internally uses fold to pass the data from one plugin to another. there are many applications for that one would be to replace all occurrences of &lsquo;not js&rsquo; with &lsquo;node.js&rsquo; to prevent freudian typos in your texts.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">not_js</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">not_js</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="n">replace</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% not_js.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">not_js</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">replace</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">re</span><span class="p">:</span><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">,</span> <span class="s">&quot;not js&quot;</span><span class="p">,</span> <span class="s">&quot;node.js&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">global</span><span class="p">]).</span>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="nv">String1</span> <span class="o">=</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">fold</span><span class="p">(</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="s">&quot;I&#39;m writing a not js application!&quot;</span><span class="p">),</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>fold</code> and <code>call</code> are the most interesting and important kind of plugins, they cover most if not all of the possible use cases of plugins so there is a special case left which I found useful to have.</p>
-
-<h3>checking plugins</h3>
-
-<p>Checking plugins are plugins which are supposed to decide if something is Ok or not, they are pretty much a case of <code>fold</code> that returns true or false (or actually whatever is not true). But <code>eplugin</code> solves this too, with the <code>test</code> function! An example here is authentication</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">get_out</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">get_out</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="n">no_really_not</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% get_out.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">get_out</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">no_really_not</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">no_really_not</span><span class="p">(</span><span class="nv">Login</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="p">{</span><span class="n">forbidden</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;Dear &quot;</span><span class="p">,</span> <span class="nv">Login</span><span class="p">,</span> <span class="s">&quot; we don&#39;t want you here go away!&quot;</span><span class="p">]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="k">case</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">test</span><span class="p">(</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="s">&quot;Licenser&quot;</span><span class="p">)</span> <span class="k">of</span>
-</span><span class='line'>     <span class="n">true</span> <span class="o">-&gt;</span>
-</span><span class='line'>      <span class="c">%%% huzza!</span>
-</span><span class='line'>     <span class="nv">Error</span> <span class="o">-&gt;</span>
-</span><span class='line'>      <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~p~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Error</span><span class="p">])</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1832,6 +1812,10 @@ better. That alone was worth every second of time invested.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/07/10/migrating-to-riak3/">Migrating to Riak3</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/11/28/postmortem-of-a-interesting-bug/">Postmortem of a Interesting Bug</a>
       </li>
     
@@ -1845,10 +1829,6 @@ better. That alone was worth every second of time invested.</p>
     
       <li class="post">
         <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/">Asynchronous Garbage Collection With CRDTs</a>
       </li>
     
   </ul>
