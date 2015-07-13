@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Fifo | Lice!]]></title>
   <link href="http://blog.licenser.net/blog/categories/fifo/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2015-07-12T17:49:36+02:00</updated>
+  <updated>2015-07-13T23:30:44+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -12,6 +12,119 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Migrating to Rebar3]]></title>
+    <link href="http://blog.licenser.net/blog/2015/07/10/migrating-to-rebar3/"/>
+    <updated>2015-07-10T01:11:12+02:00</updated>
+    <id>http://blog.licenser.net/blog/2015/07/10/migrating-to-rebar3</id>
+    <content type="html"><![CDATA[<h1>A long journey from rebar2 to rebar3</h1>
+
+<p>Rebar 3 has recently started to surface out of alpha state and entered beta1, about time for the crazy people like me to abandon tried and tested tools to venture into the great vastness of the unknown!</p>
+
+<p>So with a backpack, hiking shoes, food for about a week and a direct line to the <code>rebar3</code> IRC channel I set off to migrate <a href="https://github.com/project-fifo/sniffle">sniffle</a> from <code>rebar2</code> to <code>rebar3</code>. Now, after it looks like everything is working, I want to write up what exactly went down.</p>
+
+<p>The complete delta can be seen <a href="https://github.com/project-fifo/sniffle/pull/2/files?diff=split">here</a> please be ware that the upgrade kicked of a bit of a chain reaction with updating libraries too.</p>
+
+<h1>3 =/= 2 + 1</h1>
+
+<p>The most important thing I found, or rather the biggest misconception I had, is that <code>rebar3</code> is the next iteration of <code>rebar2</code>. This lead to a lot of misery on my part. <code>rebar3</code> is an entirely different application, the workflow is different, the logic is different and the behavior is different. Just dropping it and expecting everything to keep working the same will not end well. Treat it like migrating to a different build tool and things are a lot easier.</p>
+
+<h1>The simple stuff</h1>
+
+<h2>Folders and files</h2>
+
+<p>Some of the directories change, <code>deps</code> no longer exists and <strong>has to be deleted</strong>. It also can be removed form the <code>.gitignore</code> file. Instead <code>_build</code> now takes its place, somewhat, it&rsquo;s different but it can go into <code>.gitignore</code>.</p>
+
+<p>The same way <code>ebin</code> doesn&rsquo;t exist any longer and <strong>should be deleted</strong>. The former <code>ebin</code> now lives also in <code>_build</code> so we don&rsquo;t need to add anything new to the <code>.gitignore</code> file here. The old <code>ebin</code> will take priority over the <code>.beam</code> files generated in <code>_build</code>. That said I was pointed to the fact that there are valid reasons to have it around, for example to prevent <code>rebar3</code> to generate the <code>.app</code> file from <code>.app.src</code> or if there are additional files compiled by another tool other then <code>rebar3</code>.</p>
+
+<p>Now I said and even said it in bold that those folders <strong>HAVE TO BE DELETED</strong> that is because they do, if not an axe murderer will come by your house and kill your cat, seriously, I was just lucky that I didn&rsquo;t have a cat so he left disappointed. Aside of the axe murderer, <code>rebar3</code> will also rather unexpectedly load things from there, which, unlike then the axe murderer, did affect me and cause quite some headache.</p>
+
+<p>There is a new file, <code>rebar.lock</code> which you want to add to your repository, not ignore it, it will keep track of the versions of libraries that are into the <code>_build</code> directory and that should go there if they don&rsquo;t already exist.</p>
+
+<h2>Commands</h2>
+
+<p>The <code>rebar get-deps</code> is deprecated so is <code>rebar update-deps</code>, you don&rsquo;t need them any more, <code>rebar3</code> figures out itself when dependencies need to be installed or updated (from the <code>rebar.lock</code> file). There is a new <code>rebar3 deps</code> command, which has nothing to do with the old commands, instead it is used to give a list of the dependencies of your project (but not the sub-dependencies).</p>
+
+<p><code>rebar doc</code> is now called <code>rebar3 edoc</code> that should be noted.</p>
+
+<p><code>rebar3 dialyzer</code> is new, it replaces the old workflow of running dialyzer on its own and does all the building and checking <code>.ptl</code> files for you. The old trick of <code>grep</code>-ing away known errors to mitigate them is not working due to the mixed output however I was told that erlang 18 comes with a <a href="http://www.erlang.org/doc/man/dialyzer.html"><code>-dializer</code> pre-compiler directive</a> can be used to handle this. I am not really sure about this especially with third party libraries.</p>
+
+<p>The handling of dependencies changed too, <code>skip_deps=true</code> is no longer needed. Nor is <code>-r</code> if you are using a <code>apps/*/...</code> structure for your project. Along with those the <code>-D</code> flag is gone now, it can however the same can be achieved with profiles - later more to that.</p>
+
+<p><code>generate</code> was replaced by <code>release</code> and it now uses <code>relx</code> and not <code>reltool</code>. If you are one of the poor sods (like me) that was using <code>reltool</code> you are into a lot more fun here but that is mostly beyond the scope. If you used <code>relx</code> before this should be straight forward, just that the config now lives in the <code>rebar.config</code>. Existing <code>relx.config</code> files will still be used as long as no <code>relx</code> section exists. It should be noted that this also takes care of linking instead of copying files when used with <code>{dev_mode, true}</code> which can be very nice for developing.</p>
+
+<h2>Profiles</h2>
+
+<p>Now there is probably a lot to say, it is a way to handle differences in behavior, and can for example replace the <code>-D</code> flag like this: <code>{profiles, [{long, {erl_opts, [{d, LONGTESTS}]}</code>. I haven&rsquo;t fully grasped the power and best practice of this and there is a good <a href="http://www.rebar3.org/docs/profiles">article in the docs</a> about this so I won&rsquo;t dive further into that.</p>
+
+<p>Something worth pointing out before moving on is that <strong>everything</strong> that can be in a <code>rebar.config</code> can be in a profile, including plugins, dependencies, erlang options and so on. This makes it incredibly powerful.</p>
+
+<h2>Plugins</h2>
+
+<p><a href="http://www.rebar3.org/docs/using-available-plugins">Plugins</a> have changed a bit and become a lot more important. Some common tasks in <code>rebar2</code> now live in a plugin instead of being part of the core system. The most notable here is probably the Port Compiler (or <code>pc</code> as the plugin is called) which is used for building NIFs (like eleveldb).</p>
+
+<p>Hex comes as a plugin, which is <strong>really</strong> nice, however the plugin is needed to publish not to fetch dependencies. This plugin could happily go into the global config, yes there is a global config in <code>~/.config/rebar3/rebar.config</code>. However it is best to keep other plugins out there.</p>
+
+<p>The EQC (QuickCheck) plugin is very nice if you have quick check, either the free or the commercial version. It should be pointed out here <strong>not</strong> to put this in the global config, no matter how tempting it is or the axe murderer will come back. Other then that you can now put the properties into a <code>eqc</code> folder and separate them from tests and it is no longer needed to wrap them in <code>-ifdef(EQC)</code>  and <code>-ifdef(TEST)</code>. What is especially nice here is that it picks up on the same naming as <a href="http://quickcheck-ci.com/">quickcheck-ci</a> so that will make things easier.</p>
+
+<h2>Dependencies</h2>
+
+<p>This is a quite big topic, but it can be summed up in: forget everything you know about rebar&rsquo;s handling of dependencies it&rsquo;s invalid now.</p>
+
+<p>Perhaps the most obvious change is that in addition to source dependencies you can now include hex packages. The packages can take the form: <code>dflow</code> as &lsquo;the latest version&rsquo; (or the version fitting to other packages), or as <code>{dflow, "0.1.6"}</code> to pick a specific version (more details <a href="http://elixir-lang.org/docs/stable/elixir/Version.html">here</a>).</p>
+
+<p>Using packages has a huge advantage, they are cached locally which makes fetching them, especially for big projects, <strong>a lot nicer</strong>.</p>
+
+<p>Now my experience with rebar2 was that dependencies were handled by just cloning all of the dependencies in the <code>deps</code> folder and then adding them to the library path. This also had the effect that order didn&rsquo;t really matter. For example you could happily include header files from projects you were not depending on in the application including it.</p>
+
+<p>Now rebar3 is actually caring about what you do. For example I ran into the following situation. I have an application <code>sniffle</code> this application has file <code>include/sniffle_version.hrl</code>. Now <code>sniffle</code> was depending on <code>sniffle_watchdog</code>, however <code>sniffle_watchdig</code> was including <code>include/sniffle_version.hrl</code></p>
+
+<pre><code>     +-------------+             +-------------+
+     |   sniffle   |&lt;------------|  watchdog   |
+     +-------------+             +-------------+
+            |                           ^
+            |                           |
+            |                           |
+            |                           |
+            |                           |
++-----------------------+               |
+|  sniffle_version.hrl  |---------------+
++-----------------------+
+</code></pre>
+
+<p>This setup is no problem with <code>rebar2</code>, those files where in <code>apps/sniffle/include</code> and works great the file exist and that is all that&rsquo;s needed. <strong>However</strong>, with rebar3 this approach is problematic, since  <code>sniffle_watchdog</code> does not depend on <code>sniffle</code> it will not exist when <code>sniffle_watchdog</code> is compiled. This means that I needed to include <code>sniffle</code> in <code>sniffle_watchdog</code> which is not possible since it would create a circlular dependency. The solution for this was simply to put the version header in na own application that gets included into both.</p>
+
+<pre><code>+-------------+             +-------------+
+|   sniffle   |&lt;------------|  watchdog   |
++-------------+             +-------------+
+       ^                           ^
+       |                           |
+       |                           |
+       |                           |
+       | +-----------------------+ |
+       +-|    sniffle_version    |-+
+         +-----------------------+
+</code></pre>
+
+<p>Another slightly related topic is that when building releases now the content of the app file matters more, that is probably my own shortcoming that I ran into the problem but I did not include many library applications into the <code>application</code> section of the <code>.app.src</code> file. That lead to them missing in the release and the application dying a horribly painful death. I found the following code snipped rather helpful to track what applications were missing, and then a lot of manual labour to find where they should be included.</p>
+
+<pre><code class="bash">ls -1 _build/default/rel/sniffle/lib/  | sed 's/-.*//g' | sort &gt; rlibs
+ls -1 _build/default/lib | sort &gt; libs
+vimdiff libs rlibs
+</code></pre>
+
+<h2>The bottom line</h2>
+
+<p>After working with it a bit I think rebar3, when treated as it&rsquo;s own tool and not a iteration of rebar, is going to be huge improvement over existing erlang build tools, both erlang.mk, rebar2, and most likely any of the others lurking in the shadows.</p>
+
+<p>The devs are very friendly and responsive and have helped me a great deal during this rather interesting exercise and deserve a lot of credit for the work and for putting up with the involved hatred and anger they receive.</p>
+
+<p>Yes rebar3 is a learning curve and in the beginning it can be quite steep, but so does any other tool to be fair. It still is in beta (for a good reason), but bugs are fixed very fast and the help debugging them is outstanding.</p>
+
+<p>If you require a rock solid tool today it is probably best to wait a bit longer until the final release but that said I have come a full circle, from utter hatred and frustration (on day one) to loving it after a week and will be using it from now on.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Erlang and More DTrace]]></title>
