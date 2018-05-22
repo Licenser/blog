@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -89,7 +89,7 @@
 
 
 
-<time class='entry-date' datetime='2014-01-01T12:15:37+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:15 pm</span></time>
+
         
       </p>
     
@@ -155,118 +155,68 @@
 
 <p>Here some <a href="https://github.com/project-fifo/pyfi/blob/master/examples/backup.sh">code</a> (with some comments added):</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/usr/bin/env bash</span>
-</span><span class='line'><span class="nv">fifo</span><span class="o">=</span>fifo
-</span><span class='line'><span class="nv">vm</span><span class="o">=</span><span class="s2">&quot;$2&quot;</span>
-</span><span class='line'><span class="k">case</span> <span class="nv">$1</span> in
-</span><span class='line'>    monthly<span class="o">)</span>
-</span><span class='line'>        <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create monthly
-</span><span class='line'>        <span class="c"># After createing a new monthly snapshot we first delete the last weekly and daily backup</span>
-</span><span class='line'>        <span class="nv">last_daily</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_daily&quot;</span> <span class="o">]</span>
-</span><span class='line'>        <span class="k">then</span>
-</span><span class='line'><span class="k">            </span><span class="nv">daily_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_daily</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>            <span class="c"># the -l flag tells FiFo to only remove the backup from the hypervisor.</span>
-</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$daily_uuid</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'><span class="k">        </span><span class="nv">last_weekly</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_weekly&quot;</span> <span class="o">]</span>
-</span><span class='line'>        <span class="k">then</span>
-</span><span class='line'><span class="k">            </span><span class="nv">weekly_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_weekly</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$weekly_uuid</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'>        ;;
-</span><span class='line'>    weekly<span class="o">)</span>
-</span><span class='line'>        <span class="nv">last_backup</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;monthly\|weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="nv">uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>        <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> -d weekly
-</span><span class='line'>        <span class="c"># After creating a new weekly we need to make sure to delete the last daily one</span>
-</span><span class='line'>        <span class="nv">last_daily</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_daily&quot;</span> <span class="o">]</span>
-</span><span class='line'>        <span class="k">then</span>
-</span><span class='line'><span class="k">            </span><span class="nv">daily_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_daily</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$daily_uuid</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'>        ;;
-</span><span class='line'>    daily<span class="o">)</span>
-</span><span class='line'>        <span class="nv">last_backup</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily\|weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="nv">uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>        <span class="nb">type</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f2<span class="k">)</span>
-</span><span class='line'>        <span class="k">case</span> <span class="nv">$type</span> in
-</span><span class='line'>            weekly<span class="o">)</span>
-</span><span class='line'>                <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> daily
-</span><span class='line'>                ;;
-</span><span class='line'>            daily<span class="o">)</span>
-</span><span class='line'>                <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> -d daily
-</span><span class='line'>                ;;
-</span><span class='line'>        <span class="k">esac</span>
-</span><span class='line'>        ;;
-</span><span class='line'><span class="k">esac</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">#!/usr/bin/env bash
+fifo=fifo
+vm="$2"
+case $1 in
+    monthly)
+        $fifo vms backups $vm create monthly
+        # After createing a new monthly snapshot we first delete the last weekly and daily backup
+        last_daily=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'daily' | grep 'YES' | tail -1)
+        if [ ! -z "$last_daily" ]
+        then
+            daily_uuid=$(echo $last_daily | cut -d: -f1)
+            # the -l flag tells FiFo to only remove the backup from the hypervisor.
+            $fifo vms backups $vm delete -l $daily_uuid
+        fi
+        last_weekly=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'weekly' | grep 'YES' | tail -1)
+        if [ ! -z "$last_weekly" ]
+        then
+            weekly_uuid=$(echo $last_weekly | cut -d: -f1)
+            $fifo vms backups $vm delete -l $weekly_uuid
+        fi
+        ;;
+    weekly)
+        last_backup=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'monthly\|weekly' | grep 'YES' | tail -1)
+        uuid=$(echo $last_backup | cut -d: -f1)
+        $fifo vms backups $vm create --parent $uuid -d weekly
+        # After creating a new weekly we need to make sure to delete the last daily one
+        last_daily=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'daily' | grep 'YES' | tail -1)
+        if [ ! -z "$last_daily" ]
+        then
+            daily_uuid=$(echo $last_daily | cut -d: -f1)
+            $fifo vms backups $vm delete -l $daily_uuid
+        fi
+        ;;
+    daily)
+        last_backup=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'daily\|weekly' | grep 'YES' | tail -1)
+        uuid=$(echo $last_backup | cut -d: -f1)
+        type=$(echo $last_backup | cut -d: -f2)
+        case $type in
+            weekly)
+                $fifo vms backups $vm create --parent $uuid daily
+                ;;
+            daily)
+                $fifo vms backups $vm create --parent $uuid -d daily
+                ;;
+        esac
+        ;;
+esac
+</code></pre>
 </div>
 
 
   <footer>
     <p class="meta">
       
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2014-01-01T12:15:37+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:15 pm</span></time>
+
       
 
 
@@ -307,6 +257,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
       </li>
     
@@ -322,17 +276,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -369,7 +319,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

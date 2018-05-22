@@ -4,7 +4,7 @@
   <title><![CDATA[Lice!]]></title>
   <link href="http://blog.licenser.net/atom.xml" rel="self"/>
   <link href="http://blog.licenser.net/"/>
-  <updated>2015-07-13T23:32:25+02:00</updated>
+  <updated>2018-05-22T19:03:41+02:00</updated>
   <id>http://blog.licenser.net/</id>
   <author>
     <name><![CDATA[Heinz N. 'Licenser' Gies]]></name>
@@ -12,6 +12,101 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Dell XPS/Windows as a Dev Env]]></title>
+    <link href="http://blog.licenser.net/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/"/>
+    <updated>2018-05-21T21:19:34+02:00</updated>
+    <id>http://blog.licenser.net/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve recently gotten a Dell XPS 15" 2-in-1 and started using it as a development environment for the last week. To be honest as a long term MacBook user I expected a rather disapointing experience but to my big surprise I do really like it so far. But enough of a preamble. Why I&rsquo;m writing this? Because I figured that the mistakes I made, the hints I got all over the place would have really helped me if someone had collected them - so I do that now. Mind you a lot of it is not specific to the Dell and will work for every system.</p>
+
+<h2>The goal</h2>
+
+<p>Let&rsquo;s set expecations. This is not about making the perfect system, after all a week isn&rsquo;t enough to decide what perfect is and find out all the little things that need to get tweeked. The goal here is to get a &lsquo;good enough&rsquo; system that works for most everything without regretting it or missing my MacBook in as little time as possible.</p>
+
+<h2>The OS</h2>
+
+<p>I suspect many people will be surprised but I decided to stay with windows as a operating system, partially because I&rsquo;ve not the best opinion on Linux (which I&rsquo;m not going to discuss here) and partially because I wanted to see how good the out of the box experience is. Last but not least the whole 2-in-1 experience seems to be excelently integreated with the OS and I&rsquo;m a bit scared to have to fight a different OS to get it all working as it&rsquo;d be two unknowns to fight instead of just one.</p>
+
+<p>WSL is brilliant, I&rsquo;ve had very little problems (read none but one super esoteric one we&rsquo;ll get to later) with it.</p>
+
+<h2>My setp</h2>
+
+<p>To my great fortune I do use Eemacs which means that my environment of choice works nearly everywhere. OSX, Linux, Windows, WSL, there is an Emacs. Other then that I obviously need my Erlang, I really can&rsquo;t go without it ;). In addition I tossed in some rust and since I&rsquo;m writing this post on the XPS ruby. The usual suspects, gcc, make, git and friends come with the terretory.</p>
+
+<p>My initial attempt was to run things on windows. I tried VS code and windos emacs. Erlang, rust, git all exist as native windows binaries but the whole experience wasn&rsquo;t great especially since in the end it&rsquo;ll run on a unix or unix like system anyhow. So in the end I used WSL for help and just set everything up there.</p>
+
+<h3>Ubuntu 18.04</h3>
+
+<p>The WSL installation I picked. I don&rsquo;t want to go into a distribution war and I&rsquo;m sure all other distributions just work as well - pick your favourite I simply know ubuntu a bit better then I know SuSe (the alternative from the app store) and can&rsquo;t be bothered to find out how to add additional distributions.</p>
+
+<p>Most of everything comes in <code>apt</code>, with the exception of rust which uses <a href="https://rustup.rs">rustup</a> and erlang wich I fetched the <a href="https://www.erlang-solutions.com/resources/download.html">ESL package</a> for to get around ubuntus horrible decision to split up erlang in multiple packages (seriously WTF?!?).</p>
+
+<h3>Emacs</h3>
+
+<p>I use <a href="http://spacemacs.org/">space emacs</a> which installes without problems on WSL, just clone the reposit and call it a day. It&rsquo;ll ask you for additions for languages as you open the files, a lot exist but if you do something that&rsquo;s more esoteric then erlang you might have to do some additional fiddling.</p>
+
+<p>Here comes the first issue, WSL does not have an X server (I really hope at some point Microsoft will add one) but in the meantime <a href="https://sourceforge.net/projects/vcxsrv/">VcXsrv</a> works quite well.</p>
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Does VcXsrv not give you the X you need?</p>&mdash; Social Justice Webserver (@joedevivo) <a href="https://twitter.com/joedevivo/status/997958930570493952?ref_src=twsrc%5Etfw">May 19, 2018</a></blockquote>
+
+
+<p> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+
+<p>You can add it to auto-start too which helps! After running it the first time it&rsquo;ll ask you to save the config, do so and then run windows-r and enter <code>shell:startup</code> to open the folder for auto-start, drop the file in there and call it a day.</p>
+
+<p>Once <code>X</code> is started you need to tell the WSL shell where your display is you can do that by adding the line <code>export DISPLAY=localhost:0</code> at the end of the <code>~/.profile</code> file.</p>
+
+<p>With that all set you should have a running emacs, feel free to skip the the next section or keep reading here if you want to know a few more fancies.</p>
+
+<p>I really like the <a href="https://github.com/tonsky/FiraCode">Fira Code</a> font, fortunately it comes with ubuntu so you can install it by running <code>sudo install fonts-firacode</code>. To enable it in emacs you can follow <a href="https://github.com/tonsky/FiraCode/wiki/Emacs-instructions">their tutorial</a>. Here is the gotcha I talked about while the font works I&rsquo;ve not yet managed to get the code points to work, but it&rsquo;s not that big of a deal to me.</p>
+
+<p>A second fancy but not required thing is a Emacs desktop icon. I really wanted the option to just click it and make it start without having to go through bash and running a command or having a console window open. There is a simple trick for that. Create a VB script somewhere with the follow content:</p>
+
+<pre><code class="basic">Set oShell = CreateObject ("Wscript.Shell") 
+Dim strArgs
+strArgs = "bash -c ~/start-emacs"
+oShell.Run strArgs, 0, false
+</code></pre>
+
+<p>and a shell script in your home directory called start-emacs:</p>
+
+<pre><code class="bash">#!/bin/sh
+
+export DISPLAY=localhost:0
+emacs
+</code></pre>
+
+<p>That&rsquo;s it you can then link that to the laptop and give it the nice <a href="https://raw.githubusercontent.com/nashamri/spacemacs-logo/master/spacemacs.ico">spacemacs icon</a>.</p>
+
+<h3>Windows / The hardware</h3>
+
+<p>There are a few tweaks to the system I hade to make it more frinedly to my use (read MY use, so YMMV).</p>
+
+<h3>Touchpad</h3>
+
+<p>The touchpad just isn&rsquo;t at par with Apples touchpad, honestly none is and I suspect if you ever used a MacBook&rsquo;s touchpad you easiely agree. But XPS is one of the better ones, probably the best on a PC I&rsquo;ve ever used and there are a few tweaks that make it more user friendly.</p>
+
+<ol>
+<li>Disable tap to click, it&rsquo;s just super annoying if you&rsquo;re used the Mac touchpad.</li>
+<li>disable the right side as a right click, two fingers like on the Mac just work fine and feel more natura (to a mac user).</li>
+<li>Set 3 finger gestures to &ldquo;Switching Desktops and showing desktops&rdquo;.</li>
+</ol>
+
+
+<h3>Keyboad</h3>
+
+<p>The XPS uses what dell calls a maglev keyboard, which sounds really cool, it also types quite well. It&rsquo;s a bit clicky, that&rsquo;s not for everyone but pressing the key is distinct and you don&rsquo;t get this &ldquo;did I press it or not&rdquo; feeling. Not good or bad but I noticed that compared to the Mac the alt and ctrl keys are placed different. While on the Mac FN and Command/apple/windows are on the outside and alt and ctrl are on the inside the Dell does it the oposite way around. It takes some time to get used to but I think after a few days the way it&rsquo;s on the Dell feels more natural and better reachable (I still press Windows-D instead of Alt-D way too often :P).</p>
+
+<p>Now the downer. Dell has made the horrible deicsion to put the page up/down keys right about the arrow keys. I hate it. It&rsquo;s unnatural and trying to count the time I went a page up instead of left resulted in an integer overflow. Fortunately Kevin suggested a toll called <a href="https://www.autohotkey.com/">AutoHotkey</a>. A simple script like this:</p>
+
+<pre><code>PgUp::Left
+PgDn::Right
+</code></pre>
+
+<p>sovles the problem. AHK translates it to a standalone executable that you can put into the auto-start folder mentioned above. Effectively this re-binds the page up/down keys to left/right so that no matter which you end up hitting you get the arrow keys.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Migrating to Rebar3]]></title>
@@ -80,64 +175,39 @@
 
 <p>Now rebar3 is actually caring about what you do. For example I ran into the following situation. I have an application <code>sniffle</code> this application has file <code>include/sniffle_version.hrl</code>. Now <code>sniffle</code> was depending on <code>sniffle_watchdog</code>, however <code>sniffle_watchdig</code> was including <code>include/sniffle_version.hrl</code></p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'> +-------------+             +-------------+
-</span><span class='line'> |   sniffle   |&lt;------------|  watchdog   |
-</span><span class='line'> +-------------+             +-------------+
-</span><span class='line'>        |                           ^
-</span><span class='line'>        |                           |
-</span><span class='line'>        |                           |
-</span><span class='line'>        |                           |
-</span><span class='line'>        |                           |
-</span><span class='line'>+-----------------------+               |
-</span><span class='line'>|  sniffle_version.hrl  |---------------+
-</span><span class='line'>+-----------------------+</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>     +-------------+             +-------------+
+     |   sniffle   |&lt;------------|  watchdog   |
+     +-------------+             +-------------+
+            |                           ^
+            |                           |
+            |                           |
+            |                           |
+            |                           |
++-----------------------+               |
+|  sniffle_version.hrl  |---------------+
++-----------------------+
+</code></pre>
 
 <p>This setup is no problem with <code>rebar2</code>, those files where in <code>apps/sniffle/include</code> and works great the file exist and that is all that&rsquo;s needed. <strong>However</strong>, with rebar3 this approach is problematic, since  <code>sniffle_watchdog</code> does not depend on <code>sniffle</code> it will not exist when <code>sniffle_watchdog</code> is compiled. This means that I needed to include <code>sniffle</code> in <code>sniffle_watchdog</code> which is not possible since it would create a circlular dependency. The solution for this was simply to put the version header in na own application that gets included into both.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>+-------------+             +-------------+
-</span><span class='line'>|   sniffle   |&lt;------------|  watchdog   |
-</span><span class='line'>+-------------+             +-------------+
-</span><span class='line'>       ^                           ^
-</span><span class='line'>       |                           |
-</span><span class='line'>       |                           |
-</span><span class='line'>       |                           |
-</span><span class='line'>       | +-----------------------+ |
-</span><span class='line'>       +-|    sniffle_version    |-+
-</span><span class='line'>         +-----------------------+</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>+-------------+             +-------------+
+|   sniffle   |&lt;------------|  watchdog   |
++-------------+             +-------------+
+       ^                           ^
+       |                           |
+       |                           |
+       |                           |
+       | +-----------------------+ |
+       +-|    sniffle_version    |-+
+         +-----------------------+
+</code></pre>
 
 <p>Another slightly related topic is that when building releases now the content of the app file matters more, that is probably my own shortcoming that I ran into the problem but I did not include many library applications into the <code>application</code> section of the <code>.app.src</code> file. That lead to them missing in the release and the application dying a horribly painful death. I found the following code snipped rather helpful to track what applications were missing, and then a lot of manual labour to find where they should be included.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ls -1 _build/default/rel/sniffle/lib/  <span class="p">|</span> sed <span class="s1">&#39;s/-.*//g&#39;</span> <span class="p">|</span> sort &gt; rlibs
-</span><span class='line'>ls -1 _build/default/lib <span class="p">|</span> sort &gt; libs
-</span><span class='line'>vimdiff libs rlibs
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">ls -1 _build/default/rel/sniffle/lib/  | sed 's/-.*//g' | sort &gt; rlibs
+ls -1 _build/default/lib | sort &gt; libs
+vimdiff libs rlibs
+</code></pre>
 
 <h2>The bottom line</h2>
 
@@ -403,102 +473,54 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>Here some <a href="https://github.com/project-fifo/pyfi/blob/master/examples/backup.sh">code</a> (with some comments added):</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/usr/bin/env bash</span>
-</span><span class='line'><span class="nv">fifo</span><span class="o">=</span>fifo
-</span><span class='line'><span class="nv">vm</span><span class="o">=</span><span class="s2">&quot;$2&quot;</span>
-</span><span class='line'><span class="k">case</span> <span class="nv">$1</span> in
-</span><span class='line'>    monthly<span class="o">)</span>
-</span><span class='line'>        <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create monthly
-</span><span class='line'>        <span class="c"># After createing a new monthly snapshot we first delete the last weekly and daily backup</span>
-</span><span class='line'>        <span class="nv">last_daily</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_daily&quot;</span> <span class="o">]</span>
-</span><span class='line'>        <span class="k">then</span>
-</span><span class='line'><span class="k">            </span><span class="nv">daily_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_daily</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>            <span class="c"># the -l flag tells FiFo to only remove the backup from the hypervisor.</span>
-</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$daily_uuid</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'><span class="k">        </span><span class="nv">last_weekly</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_weekly&quot;</span> <span class="o">]</span>
-</span><span class='line'>        <span class="k">then</span>
-</span><span class='line'><span class="k">            </span><span class="nv">weekly_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_weekly</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$weekly_uuid</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'>        ;;
-</span><span class='line'>    weekly<span class="o">)</span>
-</span><span class='line'>        <span class="nv">last_backup</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;monthly\|weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="nv">uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>        <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> -d weekly
-</span><span class='line'>        <span class="c"># After creating a new weekly we need to make sure to delete the last daily one</span>
-</span><span class='line'>        <span class="nv">last_daily</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">[</span> ! -z <span class="s2">&quot;$last_daily&quot;</span> <span class="o">]</span>
-</span><span class='line'>        <span class="k">then</span>
-</span><span class='line'><span class="k">            </span><span class="nv">daily_uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_daily</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>            <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> delete -l <span class="nv">$daily_uuid</span>
-</span><span class='line'>        <span class="k">fi</span>
-</span><span class='line'>        ;;
-</span><span class='line'>    daily<span class="o">)</span>
-</span><span class='line'>        <span class="nv">last_backup</span><span class="o">=</span><span class="k">$(</span><span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> list -pH --fmt uuid,local,comment | grep <span class="s1">&#39;daily\|weekly&#39;</span> | grep <span class="s1">&#39;YES&#39;</span> | tail -1<span class="k">)</span>
-</span><span class='line'>        <span class="nv">uuid</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f1<span class="k">)</span>
-</span><span class='line'>        <span class="nb">type</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$last_backup</span> | cut -d: -f2<span class="k">)</span>
-</span><span class='line'>        <span class="k">case</span> <span class="nv">$type</span> in
-</span><span class='line'>            weekly<span class="o">)</span>
-</span><span class='line'>                <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> daily
-</span><span class='line'>                ;;
-</span><span class='line'>            daily<span class="o">)</span>
-</span><span class='line'>                <span class="nv">$fifo</span> vms backups <span class="nv">$vm</span> create --parent <span class="nv">$uuid</span> -d daily
-</span><span class='line'>                ;;
-</span><span class='line'>        <span class="k">esac</span>
-</span><span class='line'>        ;;
-</span><span class='line'><span class="k">esac</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">#!/usr/bin/env bash
+fifo=fifo
+vm="$2"
+case $1 in
+    monthly)
+        $fifo vms backups $vm create monthly
+        # After createing a new monthly snapshot we first delete the last weekly and daily backup
+        last_daily=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'daily' | grep 'YES' | tail -1)
+        if [ ! -z "$last_daily" ]
+        then
+            daily_uuid=$(echo $last_daily | cut -d: -f1)
+            # the -l flag tells FiFo to only remove the backup from the hypervisor.
+            $fifo vms backups $vm delete -l $daily_uuid
+        fi
+        last_weekly=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'weekly' | grep 'YES' | tail -1)
+        if [ ! -z "$last_weekly" ]
+        then
+            weekly_uuid=$(echo $last_weekly | cut -d: -f1)
+            $fifo vms backups $vm delete -l $weekly_uuid
+        fi
+        ;;
+    weekly)
+        last_backup=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'monthly\|weekly' | grep 'YES' | tail -1)
+        uuid=$(echo $last_backup | cut -d: -f1)
+        $fifo vms backups $vm create --parent $uuid -d weekly
+        # After creating a new weekly we need to make sure to delete the last daily one
+        last_daily=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'daily' | grep 'YES' | tail -1)
+        if [ ! -z "$last_daily" ]
+        then
+            daily_uuid=$(echo $last_daily | cut -d: -f1)
+            $fifo vms backups $vm delete -l $daily_uuid
+        fi
+        ;;
+    daily)
+        last_backup=$($fifo vms backups $vm list -pH --fmt uuid,local,comment | grep 'daily\|weekly' | grep 'YES' | tail -1)
+        uuid=$(echo $last_backup | cut -d: -f1)
+        type=$(echo $last_backup | cut -d: -f2)
+        case $type in
+            weekly)
+                $fifo vms backups $vm create --parent $uuid daily
+                ;;
+            daily)
+                $fifo vms backups $vm create --parent $uuid -d daily
+                ;;
+        esac
+        ;;
+esac
+</code></pre>
 ]]></content>
   </entry>
   
@@ -521,51 +543,31 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <h3>remove</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">remove</span><span class="p">(</span><span class="nv">Id</span><span class="p">,</span> <span class="nv">Element</span><span class="p">,</span> <span class="nv">ORSet</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes</span><span class="p">})</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="nv">CurrentExisting</span> <span class="o">=</span> <span class="p">[</span><span class="nv">Elem</span> <span class="p">||</span> <span class="nv">Elem</span> <span class="o">=</span> <span class="p">{_,</span> <span class="nv">E1</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="n">raw_value</span><span class="p">(</span><span class="nv">ORSet</span><span class="p">),</span>
-</span><span class='line'>                               <span class="nv">E1</span> <span class="o">=:=</span> <span class="nv">Element</span><span class="p">],</span>
-</span><span class='line'>    <span class="nv">Removes1</span> <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span><span class="p">(</span><span class="nv">R</span><span class="p">,</span> <span class="nv">Rs</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>                                   <span class="nn">rot</span><span class="p">:</span><span class="nf">add</span><span class="p">({</span><span class="nv">Id</span><span class="p">,</span> <span class="nv">R</span><span class="p">},</span> <span class="nv">Rs</span><span class="p">)</span>
-</span><span class='line'>                           <span class="k">end</span><span class="p">,</span> <span class="nv">Removes</span><span class="p">,</span> <span class="nv">CurrentExisting</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">ORSet</span><span class="nl">#vorsetg</span><span class="p">{</span><span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes1</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">remove(Id, Element, ORSet = #vorsetg{removes = Removes}) -&gt;
+    CurrentExisting = [Elem || Elem = {_, E1} &lt;- raw_value(ORSet),
+                               E1 =:= Element],
+    Removes1 = lists:foldl(fun(R, Rs) -&gt;
+                                   rot:add({Id, R}, Rs)
+                           end, Removes, CurrentExisting),
+    ORSet#vorsetg{removes = Removes1}.
+</code></pre>
 
 <p><code>Id</code> defaults to a the current time in nanoseconds since it&rsquo;s precise enough for most cases, but can be given any value that provides timed order. Line 2 and 3 collect all observed and not yet removed instances of the element to delete, we then fold over those instances and add each of them to the ROT.</p>
 
 <h3>GC</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">gc</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span>
-</span><span class='line'>   <span class="nl">#vorsetg</span><span class="p">{</span>
-</span><span class='line'>      <span class="n">adds</span> <span class="o">=</span> <span class="nv">Adds</span><span class="p">,</span>
-</span><span class='line'>      <span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes</span><span class="p">,</span>
-</span><span class='line'>      <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">})</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">{</span><span class="nv">Values</span><span class="p">,</span> <span class="nv">Removes1</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rot</span><span class="p">:</span><span class="nf">remove</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span> <span class="nv">Removes</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">Values1</span> <span class="o">=</span> <span class="p">[</span><span class="nv">V</span> <span class="p">||</span> <span class="p">{_,</span> <span class="nv">V</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">Values</span><span class="p">],</span>
-</span><span class='line'>    <span class="nv">Values2</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">from_list</span><span class="p">(</span><span class="nv">Values1</span><span class="p">),</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">adds</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">subtract</span><span class="p">(</span><span class="nv">Adds</span><span class="p">,</span> <span class="nv">Values2</span><span class="p">),</span>
-</span><span class='line'>             <span class="n">gced</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">add_element</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span> <span class="nv">GCed</span><span class="p">),</span>
-</span><span class='line'>             <span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes1</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">gc(HashID,
+   #vorsetg{
+      adds = Adds,
+      removes = Removes,
+      gced = GCed}) -&gt;
+    {Values, Removes1} = rot:remove(HashID, Removes),
+    Values1 = [V || {_, V} &lt;- Values],
+    Values2 = ordsets:from_list(Values1),
+    #vorsetg{adds = ordsets:subtract(Adds, Values2),
+             gced = ordsets:add_element(HashID, GCed),
+             removes = Removes1}.
+</code></pre>
 
 <p>To GC the set we take the <code>HashID</code>, this is what the rot returns when it reports full buckets, and in line 6 remove it from the ROT. Thankfully the ROT will return the content of the deleted bucket, this comes in very handy, since in the process of garbage collecting the bucket we also need to remove the items once and for all from the add list as seen in line 9. We then record the GC action in line 10 to make sure it will applied during a merge.</p>
 
@@ -573,38 +575,22 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <h3>merge</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">merge</span><span class="p">(</span><span class="nv">ROTA</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">gced</span> <span class="o">=</span> <span class="nv">GCedA</span><span class="p">},</span>
-</span><span class='line'>      <span class="nv">ROTB</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">gced</span> <span class="o">=</span> <span class="nv">GCedB</span><span class="p">})</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span>
-</span><span class='line'>       <span class="n">adds</span> <span class="o">=</span> <span class="nv">AddsA</span><span class="p">,</span>
-</span><span class='line'>       <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">,</span>
-</span><span class='line'>       <span class="n">removes</span> <span class="o">=</span> <span class="nv">RemovesA</span><span class="p">}</span>
-</span><span class='line'>        <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span> <span class="n">gc</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nv">ROTA</span><span class="p">,</span> <span class="nv">GCedB</span><span class="p">),</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span>
-</span><span class='line'>       <span class="n">adds</span> <span class="o">=</span> <span class="nv">AddsB</span><span class="p">,</span>
-</span><span class='line'>       <span class="n">removes</span> <span class="o">=</span> <span class="nv">RemovesB</span><span class="p">}</span>
-</span><span class='line'>        <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span> <span class="n">gc</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nv">ROTB</span><span class="p">,</span> <span class="nv">GCedA</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">ROT1</span> <span class="o">=</span> <span class="nn">rot</span><span class="p">:</span><span class="nf">merge</span><span class="p">(</span><span class="nv">RemovesA</span><span class="p">,</span> <span class="nv">RemovesB</span><span class="p">),</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">adds</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">union</span><span class="p">(</span><span class="nv">AddsA</span><span class="p">,</span> <span class="nv">AddsB</span><span class="p">),</span>
-</span><span class='line'>             <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">,</span>
-</span><span class='line'>             <span class="n">removes</span> <span class="o">=</span> <span class="nv">ROT1</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">merge(ROTA = #vorsetg{gced = GCedA},
+      ROTB = #vorsetg{gced = GCedB}) -&gt;
+    #vorsetg{
+       adds = AddsA,
+       gced = GCed,
+       removes = RemovesA}
+        = lists:foldl(fun gc/2, ROTA, GCedB),
+    #vorsetg{
+       adds = AddsB,
+       removes = RemovesB}
+        = lists:foldl(fun gc/2, ROTB, GCedA),
+    ROT1 = rot:merge(RemovesA, RemovesB),
+    #vorsetg{adds = ordsets:union(AddsA, AddsB),
+             gced = GCed,
+             removes = ROT1}.
+</code></pre>
 
 <p>Merging gets a bit more complicated due to the fact that we now have to take into account that values might be garbage collected in one set but not in the other. While merging them would do no harm it would recreate the garbage which isn&rsquo;t too nice. So what we do is applying the recorded GC actions to both sets first as seen in line 3 to 11 and then merge the remove values (line 12) finally the add values (line 13).</p>
 
@@ -622,18 +608,12 @@ Generally all fifo data is stored in CRDT&rsquo;s which provides conflict resolu
 
 <p>Measured were both the space reduction per GC run and the final difference of size. Per GC run about 15% space was reclaimed and at the end the GCed set had a total space consumption of around 26% of the normal OR Set in average, 6% in the best and 143% in the worst case.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span><span class="nv">Size</span><span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>   <span class="nv">Avg</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">261</span><span class="p">,</span>  <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">062</span><span class="p">,</span> <span class="nv">Max</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">507</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">RS</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">49221</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">866</span><span class="p">,</span>  <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">064</span><span class="p">,</span> <span class="nv">Max</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">GC</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">49221</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">55</span><span class="p">.</span><span class="mi">870</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6483</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">MG</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">98357</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">58</span><span class="p">.</span><span class="mi">110</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6596</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">OP</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">344708</span><span class="p">,</span> <span class="nv">Avg</span><span class="p">:</span> <span class="mi">38</span><span class="p">.</span><span class="mi">539</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6916</span><span class="err">```</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>src/vorsetg.erl:389:&lt;0.135.0&gt;: [Size] Cnt: 1000,   Avg: 0.261,  Min: 0.062, Max: 1.507
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ RS ] Cnt: 49221,  Avg: 0.866,  Min: 0.064, Max: 1.0
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ GC ] Cnt: 49221,  Avg: 55.870, Min: 0,     Max: 6483
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ MG ] Cnt: 98357,  Avg: 58.110, Min: 0,     Max: 6596
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ OP ] Cnt: 344708, Avg: 38.539, Min: 0,     Max: 6916```
+</code></pre>
 
 <p>The numbers are from a test run, for readability truncated manually after 3 digest and aligned to be nicer readable. <strong>Size</strong> is total size at the end of the iteration, <strong>RS</strong> is the space reduction per GC run. <strong>GC</strong>, <strong>MG</strong> and <strong>OP</strong> are the time used for garbage collection, merging and other operations respectively, the numbers are per execution and measured microseconds. Time measurements also include noise that from additional operations required for the test and should not be seen as a useful benchmark!</p>
 
@@ -834,16 +814,11 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Before we can begin we&rsquo;ve to set up a few things, I&rsquo;ll not go into detail how to set up FiFo, there is a [good manual] for that with only like 5 steps required. So lets start at some of the script&rsquo;s variables:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#/usr/bin/env bash</span>
-</span><span class='line'><span class="nv">PACKAGE</span><span class="o">=</span><span class="s2">&quot;small&quot;</span>
-</span><span class='line'><span class="nv">DATASET</span><span class="o">=</span><span class="s2">&quot;base64-1.9.1&quot;</span>
-</span><span class='line'><span class="nv">NET</span><span class="o">=</span><span class="s2">&quot;7df94bc3-6a9f-4c88-8f80-7a8f4086b79d&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">#/usr/bin/env bash
+PACKAGE="small"
+DATASET="base64-1.9.1"
+NET="7df94bc3-6a9f-4c88-8f80-7a8f4086b79d"
+</code></pre>
 
 <ul>
 <li><code>smal</code> is the name of the package created in FiFo, I picked something with 512MB of memory since that should be enough for now.</li>
@@ -852,169 +827,98 @@ better. That alone was worth every second of time invested.</p>
 </ul>
 
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>schroedinger:fifopy heinz <span class="o">[</span>master<span class="o">]</span> <span class="nv">$ </span>fifo packages list
-</span><span class='line'>                                UUID Name       RAM        CPU cap    Quota
-</span><span class='line'>------------------------------------ ---------- ---------- ---------- ----------
-</span><span class='line'>5f9f6c41-d700-4b4f-80f1-7350a71ed2e6 small      512 MB     100%       10 GB
-</span><span class='line'>schroedinger:fifopy heinz <span class="o">[</span>master<span class="o">]</span> <span class="nv">$ </span>fifo networks list
-</span><span class='line'>                                UUID Name       Tag                  First            Last
-</span><span class='line'>------------------------------------ ---------- ---------- --------------- ---------------
-</span><span class='line'>7df94bc3-6a9f-4c88-8f80-7a8f4086b79d <span class="nb">test       </span>admin        192.168.0.210   192.168.0.220
-</span><span class='line'>schroedinger:fifopy heinz <span class="o">[</span>master<span class="o">]</span> <span class="nv">$ </span>fifo datasets list
-</span><span class='line'>                                UUID Name       Version Type  Description
-</span><span class='line'>------------------------------------ ---------- ------- ----- ----------
-</span><span class='line'>60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4 base       1.9.1   zone  A SmartOS ...
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">schroedinger:fifopy heinz [master] $ fifo packages list
+                                UUID Name       RAM        CPU cap    Quota
+------------------------------------ ---------- ---------- ---------- ----------
+5f9f6c41-d700-4b4f-80f1-7350a71ed2e6 small      512 MB     100%       10 GB
+schroedinger:fifopy heinz [master] $ fifo networks list
+                                UUID Name       Tag                  First            Last
+------------------------------------ ---------- ---------- --------------- ---------------
+7df94bc3-6a9f-4c88-8f80-7a8f4086b79d test       admin        192.168.0.210   192.168.0.220
+schroedinger:fifopy heinz [master] $ fifo datasets list
+                                UUID Name       Version Type  Description
+------------------------------------ ---------- ------- ----- ----------
+60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4 base       1.9.1   zone  A SmartOS ...
+</code></pre>
 
 <h3>Creating a VM with riak installed</h3>
 
 <p>Creating a VM is rather simple we need a little JSON and pipe it to fifo with a cat. Please note the section reading <code>user-script</code> here we make the setup. Here is how it looks.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>cat <span class="s">&lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET</span>
-</span><span class='line'><span class="s">{</span>
-</span><span class='line'><span class="s">  &quot;alias&quot;: &quot;riak1&quot;,</span>
-</span><span class='line'><span class="s">  &quot;networks&quot;: {&quot;net0&quot;: &quot;$NET&quot;},</span>
-</span><span class='line'><span class="s">  &quot;metadata&quot;: {&quot;user-script&quot;: &quot;/opt/local/bin/sed -i.bak \\&quot;s/pkgsrc/pkgsrc-eu-ams/\\&quot; /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk &#39;{print \$2}&#39;\`; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/vm.args; svcadm enable epmd riak&quot;}</span>
-</span><span class='line'><span class="s">}</span>
-</span><span class='line'><span class="s">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
+{
+  "alias": "riak1",
+  "networks": {"net0": "$NET"},
+  "metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak"}
+}
+EOF
+</code></pre>
 
 <p>To get a bit better look user script section and remove the escape things:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># We configure pkgin to use the european mirror you might not need to do that.</span>
-</span><span class='line'>/opt/local/bin/sed -i.bak <span class="s2">&quot;s/pkgsrc/pkgsrc-eu-ams/&quot;</span> /opt/local/etc/pkgin/repositories.conf;
-</span><span class='line'><span class="c"># We update the pkgin database and install riak</span>
-</span><span class='line'>/opt/local/bin/pkgin update;
-</span><span class='line'>/opt/local/bin/pkgin -y install riak;
-</span><span class='line'><span class="c"># We find out what IP our VM has from within the VM.</span>
-</span><span class='line'><span class="nb">export </span><span class="nv">IP</span><span class="o">=</span><span class="sb">`</span>ifconfig net0 | head -n 2 | tail -n 1 | awk <span class="s1">&#39;{print $2}&#39;</span><span class="sb">`</span>;
-</span><span class='line'><span class="c"># We update the app.config and vm.args to use the &#39;public&#39; ip instead of the 127.0.0.1</span>
-</span><span class='line'>/opt/local/bin/sed -i.bak <span class="s2">&quot;s/127.0.0.1/$IP/&quot;</span> /opt/local/etc/riak/app.config;
-</span><span class='line'>/opt/local/bin/sed -i.bak <span class="s2">&quot;s/127.0.0.1/$IP/&quot;</span> /opt/local/etc/riak/vm.args;
-</span><span class='line'><span class="c"># Start epmd and riak</span>
-</span><span class='line'>svcadm <span class="nb">enable </span>epmd riak
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash"># We configure pkgin to use the european mirror you might not need to do that.
+/opt/local/bin/sed -i.bak "s/pkgsrc/pkgsrc-eu-ams/" /opt/local/etc/pkgin/repositories.conf;
+# We update the pkgin database and install riak
+/opt/local/bin/pkgin update;
+/opt/local/bin/pkgin -y install riak;
+# We find out what IP our VM has from within the VM.
+export IP=`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print $2}'`;
+# We update the app.config and vm.args to use the 'public' ip instead of the 127.0.0.1
+/opt/local/bin/sed -i.bak "s/127.0.0.1/$IP/" /opt/local/etc/riak/app.config;
+/opt/local/bin/sed -i.bak "s/127.0.0.1/$IP/" /opt/local/etc/riak/vm.args;
+# Start epmd and riak
+svcadm enable epmd riak
+</code></pre>
 
 <h3>Waiting for riak</h3>
 
 <p>Now that is the first zone set up next we&rsquo;ll want to wait for riak to properly start up. This is needed since the commands are asynchronous and installing the packages can be a tad slow. But we can just to curl the http interface to check for this, so it&rsquo;s rather simple:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># We&#39;ll ask fifo for the IP of our first zone.</span>
-</span><span class='line'><span class="nv">IP1</span><span class="o">=</span><span class="sb">`</span>fifo vms get riak1 | json networks<span class="o">[</span>0<span class="o">]</span>.ip<span class="sb">`</span>
-</span><span class='line'><span class="c"># Print some info so waiting is not so boring</span>
-</span><span class='line'><span class="nb">echo</span> -n <span class="s1">&#39;Waiting until riak is up and running on the primary node.&#39;</span>
-</span><span class='line'><span class="c"># now we curl the http interface every second to see if things are good.</span>
-</span><span class='line'><span class="k">until </span>curl http://<span class="k">${</span><span class="nv">IP1</span><span class="k">}</span>:8098 2&gt;/dev/null &gt;/dev/null
-</span><span class='line'><span class="k">do</span>
-</span><span class='line'><span class="k">  </span>sleep 1
-</span><span class='line'>  <span class="nb">echo</span> -n <span class="s1">&#39;.&#39;</span>
-</span><span class='line'><span class="k">done</span>
-</span><span class='line'><span class="c"># and we&#39;re done!</span>
-</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; done.&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash"># We'll ask fifo for the IP of our first zone.
+IP1=`fifo vms get riak1 | json networks[0].ip`
+# Print some info so waiting is not so boring
+echo -n 'Waiting until riak is up and running on the primary node.'
+# now we curl the http interface every second to see if things are good.
+until curl http://${IP1}:8098 2&gt;/dev/null &gt;/dev/null
+do
+    sleep 1
+    echo -n '.'
+done
+# and we're done!
+echo " done."
+</code></pre>
 
 <h3>Setting up the remaining zones</h3>
 
 <p>We&rsquo;re not going to get into too much details with this since it is pretty much working the same as the first VM with the only difference that the user-script holds two more lines:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for </span>i in 2 3 4 5
-</span><span class='line'><span class="k">do</span>
-</span><span class='line'><span class="k">  </span>cat <span class="s">&lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET</span>
-</span><span class='line'><span class="s">  {</span>
-</span><span class='line'><span class="s">    &quot;alias&quot;: &quot;riak${i}&quot;,</span>
-</span><span class='line'><span class="s">    &quot;networks&quot;: {&quot;net0&quot;: &quot;$NET&quot;},</span>
-</span><span class='line'><span class="s">    &quot;metadata&quot;: {&quot;user-script&quot;: &quot;/opt/local/bin/sed -i.bak \\&quot;s/pkgsrc/pkgsrc-eu-ams/\\&quot; /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk &#39;{print \$2}&#39;\`; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/vm.args; svcadm enable epmd riak; sleep 10; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit&quot;}</span>
-</span><span class='line'><span class="s">  }</span>
-</span><span class='line'><span class="s">EOF</span>
-</span><span class='line'>  <span class="nv">IP</span><span class="o">=</span><span class="sb">`</span>fifo vms get riak<span class="nv">$i</span> | json networks<span class="o">[</span>0<span class="o">]</span>.ip<span class="sb">`</span>
-</span><span class='line'>  <span class="nb">echo</span> -n <span class="s2">&quot;Waiting untill riak is up and running on the node $i.&quot;</span>
-</span><span class='line'>  <span class="k">until </span>curl http://<span class="k">${</span><span class="nv">IP</span><span class="k">}</span>:8098 2&gt;/dev/null &gt;/dev/null
-</span><span class='line'>  <span class="k">do</span>
-</span><span class='line'><span class="k">      </span>sleep 1
-</span><span class='line'>      <span class="nb">echo</span> -n <span class="s1">&#39;.&#39;</span>
-</span><span class='line'>  <span class="k">done</span>
-</span><span class='line'><span class="k">  </span><span class="nb">echo</span> <span class="s2">&quot; done.&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">done</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="bash">for i in 2 3 4 5
+do
+    cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
+  {
+    "alias": "riak${i}",
+    "networks": {"net0": "$NET"},
+    "metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak; sleep 10; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit"}
+  }
+EOF
+    IP=`fifo vms get riak$i | json networks[0].ip`
+    echo -n "Waiting untill riak is up and running on the node $i."
+    until curl http://${IP}:8098 2&gt;/dev/null &gt;/dev/null
+    do
+        sleep 1
+        echo -n '.'
+    done
+    echo " done."
 
+done
+</code></pre>
 
-<p>The two new lines are joining the node to the existing riak node which is quite easy, we can use $IP1 we generated in the first step too:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@<span class="k">${</span><span class="nv">IP1</span><span class="k">}</span>
-</span><span class='line'>/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan
-</span><span class='line'>/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The two new lines are joining the node to the existing riak node which is quite easy, we can use $IP1 we generated in the first step too:
+<code>bash
+/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}
+/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan
+/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit
+</code></p>
 
 <p>This is run that up and you&rsquo;ve a 5 node riak cluster, and it&rsquo;s quick at last if you&rsquo;re in the US and have a good connection to the package repository.</p>
 
@@ -1050,16 +954,11 @@ better. That alone was worth every second of time invested.</p>
 
 <p><code>riak_test</code> offers a way to start instances of your application and communicate with them, the common pattern is to start one (or more) nodes as first part of the script and check of they are up and running. That could look something like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">confirm</span><span class="p">()</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">[</span><span class="nv">Node</span><span class="p">]</span> <span class="o">=</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">deploy_nodes</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">wait_until_nodes_ready</span><span class="p">([</span><span class="nv">Node</span><span class="p">])),</span>
-</span><span class='line'>    <span class="n">pass</span><span class="p">.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">confirm() -&gt;
+    [Node] = rt:deploy_nodes(1),
+    ?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
+    pass.
+</code></pre>
 
 <p>This is a minimal test it sets up one instance of our application and waits for it to be ready.</p>
 
@@ -1077,38 +976,22 @@ better. That alone was worth every second of time invested.</p>
 
 <p>So backchannel to the rescue! We&rsquo;ll just get the nodes configuration from the host, for my application I store this kind of information in the application configuration so I&rsquo;ve made a function that given a <code>Node</code> returns <code>IP</code> and <code>Port</code> for it to talk to plus one to send data:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">node_endpoing</span><span class="p">(</span><span class="nv">Node</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">IP</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rpc</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">get_env</span><span class="p">,</span> <span class="p">[</span><span class="n">mdns_server_lib</span><span class="p">,</span> <span class="n">ip</span><span class="p">]),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Port</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rpc</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">get_env</span><span class="p">,</span> <span class="p">[</span><span class="n">mdns_server_lib</span><span class="p">,</span> <span class="n">port</span><span class="p">]),</span>
-</span><span class='line'>    <span class="p">{</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">{</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">}</span> <span class="o">=</span> <span class="n">node_endpoing</span><span class="p">(</span><span class="nv">Node</span><span class="p">),</span>
-</span><span class='line'>    <span class="nn">lager</span><span class="p">:</span><span class="nf">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~s</span><span class="s">:</span><span class="si">~p</span><span class="s"> &lt;- </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">]),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Socket</span><span class="p">}</span> <span class="o">=</span> <span class="nn">gen_tcp</span><span class="p">:</span><span class="nf">connect</span><span class="p">(</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">,</span> <span class="p">[</span><span class="n">binary</span><span class="p">,</span> <span class="p">{</span><span class="n">active</span><span class="p">,</span><span class="n">false</span><span class="p">},</span> <span class="p">{</span><span class="n">packet</span><span class="p">,</span><span class="mi">4</span><span class="p">}],</span> <span class="mi">100</span><span class="p">),</span>
-</span><span class='line'>    <span class="n">ok</span> <span class="o">=</span> <span class="nn">gen_tcp</span><span class="p">:</span><span class="nb">send</span><span class="p">(</span><span class="nv">Socket</span><span class="p">,</span> <span class="nb">term_to_binary</span><span class="p">(</span><span class="nv">Msg</span><span class="p">)),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Repl</span><span class="p">}</span> <span class="o">=</span> <span class="nn">gen_tcp</span><span class="p">:</span><span class="nf">recv</span><span class="p">(</span><span class="nv">Socket</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">reply</span><span class="p">,</span> <span class="nv">Res</span><span class="p">}</span> <span class="o">=</span> <span class="nb">binary_to_term</span><span class="p">(</span><span class="nv">Repl</span><span class="p">),</span>
-</span><span class='line'>    <span class="nn">lager</span><span class="p">:</span><span class="nf">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~s</span><span class="s">:</span><span class="si">~p</span><span class="s"> -&gt; </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">,</span> <span class="nv">Res</span><span class="p">]),</span>
-</span><span class='line'>    <span class="nn">gen_tcp</span><span class="p">:</span><span class="nf">close</span><span class="p">(</span><span class="nv">Socket</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">Res</span><span class="p">.</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">node_endpoing(Node) -&gt;
+    {ok, IP} = rpc:call(Node, application, get_env, [mdns_server_lib, ip]),
+    {ok, Port} = rpc:call(Node, application, get_env, [mdns_server_lib, port]),
+    {IP, Port}.
 
+call(Node, Msg) -&gt;
+    {IP, Port} = node_endpoing(Node),
+    lager:debug("~s:~p &lt;- ~p", [IP, Port, Msg]),
+    {ok, Socket} = gen_tcp:connect(IP, Port, [binary, {active,false}, {packet,4}], 100),
+    ok = gen_tcp:send(Socket, term_to_binary(Msg)),
+    {ok, Repl} = gen_tcp:recv(Socket, 0),
+    {reply, Res} = binary_to_term(Repl),
+    lager:debug("~s:~p -&gt; ~p", [IP, Port, Res]),
+    gen_tcp:close(Socket),
+    Res.
+</code></pre>
 
 <p>There is some <code>gen_tcp</code> stuff in there but lets just ignore it for now it&rsquo;s detail not important, the first function is the more interesting one it uses the <code>rpc</code> module to execute the commands on the node we just started which is quite awesome.</p>
 
@@ -1118,28 +1001,17 @@ better. That alone was worth every second of time invested.</p>
 
 <p>With <code>call/2</code> we&rsquo;ve now a way to send data directly to the node over the official API channel so lets add to our test. So lets get back to our <code>confirm/0</code> and add some real tests:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">confirm</span><span class="p">()</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">[</span><span class="nv">Node</span><span class="p">]</span> <span class="o">=</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">deploy_nodes</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">wait_until_nodes_ready</span><span class="p">([</span><span class="nv">Node</span><span class="p">])),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">({</span><span class="n">ok</span><span class="p">,[]},</span>
-</span><span class='line'>                 <span class="nn">rt_sniffle</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="p">{</span><span class="n">vm</span><span class="p">,</span> <span class="n">list</span><span class="p">})),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span>
-</span><span class='line'>                 <span class="nn">rt_sniffle</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="p">{</span><span class="n">vm</span><span class="p">,</span> <span class="nb">register</span><span class="p">,</span> <span class="o">&lt;&lt;</span><span class="s">&quot;vmid&quot;</span><span class="o">&gt;&gt;</span><span class="p">,</span> <span class="o">&lt;&lt;</span><span class="s">&quot;hypervisor&quot;</span><span class="o">&gt;&gt;</span><span class="p">})),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">({</span><span class="n">ok</span><span class="p">,[</span><span class="o">&lt;&lt;</span><span class="s">&quot;vmid&quot;</span><span class="o">&gt;&gt;</span><span class="p">]},</span>
-</span><span class='line'>                 <span class="nn">rt_sniffle</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="p">{</span><span class="n">vm</span><span class="p">,</span> <span class="n">list</span><span class="p">})),</span>
-</span><span class='line'>    <span class="n">pass</span><span class="p">.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">confirm() -&gt;
+    [Node] = rt:deploy_nodes(1),
+    ?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
+    ?assertEqual({ok,[]},
+                 rt_sniffle:call(Node, {vm, list})),
+    ?assertEqual(ok,
+                 rt_sniffle:call(Node, {vm, register, &lt;&lt;"vmid"&gt;&gt;, &lt;&lt;"hypervisor"&gt;&gt;})),
+    ?assertEqual({ok,[&lt;&lt;"vmid"&gt;&gt;]},
+                 rt_sniffle:call(Node, {vm, list})),                 
+    pass.
+</code></pre>
 
 <p>It&rsquo;s as easy as this, this test will</p>
 
@@ -1175,17 +1047,12 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changed to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>---riak_test--------- (bashos master tree)
-</span><span class='line'>   `---riak_core----- (modifications to make riak_test work with core apps)
-</span><span class='line'>    ` `  `---sniffle- (tests for sniffle)
-</span><span class='line'>     ` `---snarl----- (tests for snarl)
-</span><span class='line'>      `---howl------- (tests for howl)</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>---riak_test--------- (bashos master tree)
+   `---riak_core----- (modifications to make riak_test work with core apps)
+    ` `  `---sniffle- (tests for sniffle)
+     ` `---snarl----- (tests for snarl)
+      `---howl------- (tests for howl)
+</code></pre>
 
 <p>We&rsquo;ll go over this and setting up tests for the <a href="https://github.com/project-fifo/howl">howl application</a> it&rsquo;s rather small and simple and it&rsquo;s easier to follow along with something real instead of a made up situation.</p>
 
@@ -1193,23 +1060,17 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Step one of getting started is to get a clone from the <code>riak_test</code> repository, that&rsquo;s pretty simple (alter the path if you decided to fork):</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd ~/Projects
-</span><span class='line'>git clone https://github.com/Licenser/riak_test.git
-</span><span class='line'>cd riak_test</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>cd ~/Projects
+git clone https://github.com/Licenser/riak_test.git
+cd riak_test
+</code></pre>
 
 <p>Now we branch of to have a place to get our howl application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git checkout riak_core
-</span><span class='line'>git branch howl
-</span><span class='line'>git checkout howl</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>git checkout riak_core
+git branch howl
+git checkout howl
+</code></pre>
 
 <p>Okay that&rsquo;s it for the basic setup not that bad so far is it?</p>
 
@@ -1219,71 +1080,49 @@ better. That alone was worth every second of time invested.</p>
 
 <p><code>riak_test</code> looks for the configuration file <code>~/.riak_test.config</code> and reads all the data from there so we&rsquo;ll first need to copy the sample config there:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cp riak_test.config.sample ~/.riak_test.config</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>cp riak_test.config.sample ~/.riak_test.config
+</code></pre>
 
 <p>Next step is to open it in your favourite editor, you&rsquo;ll recognise it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
 
 <p>So lets go down to where it reads:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%% ===============================================================</span>
-</span><span class='line'><span class="c">%%  Project-specific configurations</span>
-</span><span class='line'><span class="c">%% ===============================================================</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">%% ===============================================================
+%%  Project-specific configurations
+%% ===============================================================
+</code></pre>
 
 <p>Here is where the fun starts, you&rsquo;ll see a tuple starting with <code>{rtdev,</code> - note this <code>rtdev</code> has nothing whatsoever to do with the <code>rtdev</code> that is in the <code>default</code> section as <code>{rt_harness, rtdev}</code>. The <code>rtdev</code> in the project part is just the name of the project, since your project is named <code>howl</code> not <code>rtdev</code> we&rsquo;ll go and change that first.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="p">{</span><span class="n">rtdev</span><span class="p">,</span> <span class="p">[</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">{rtdev, [
+</code></pre>
 
 <p>Now we can go to set up some variables first up the project name and executables, the name itself is just for information (or if you use <code>giddyup</code>) the executables are how your application is started, since our application is named <code>howl</code> it&rsquo;s started with the command <code>howl</code> and the admin command for it is <code>howl-admin</code>.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%% The name of the project/product, used when fetching the test</span>
-</span><span class='line'><span class="c">%% suite and reporting.</span>
-</span><span class='line'><span class="p">{</span><span class="n">rt_project</span><span class="p">,</span> <span class="s">&quot;howl&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">{</span><span class="n">rc_executable</span><span class="p">,</span> <span class="s">&quot;howl&quot;</span><span class="p">},</span>
-</span><span class='line'><span class="p">{</span><span class="n">rc_admin</span><span class="p">,</span> <span class="s">&quot;howl-admin&quot;</span><span class="p">},</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">    %% The name of the project/product, used when fetching the test
+    %% suite and reporting.
+    {rt_project, "howl"},
 
+    {rc_executable, "howl"},
+    {rc_admin, "howl-admin"},
+</code></pre>
 
 <p>With that done come the services, those are the buggers you register in your _app.erl file, lets have a look at the howl_app.erl:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%...</span>
-</span><span class='line'>            <span class="n">ok</span> <span class="o">=</span> <span class="nn">riak_core_node_watcher</span><span class="p">:</span><span class="nf">service_up</span><span class="p">(</span><span class="n">howl</span><span class="p">,</span> <span class="n">self</span><span class="p">()),</span>
-</span><span class='line'><span class="c">%...</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">%...
+            ok = riak_core_node_watcher:service_up(howl, self()),
+%...
+</code></pre>
 
 <p>So we only have one service here we need to watch out for, named, you might guess … right <code>howl</code> that makes the list rather short:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="p">{</span><span class="n">rc_services</span><span class="p">,</span> <span class="p">[</span><span class="n">howl</span><span class="p">]},</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    {rc_services, [howl]},
+</code></pre>
 
 <p>Now the cookie, it&rsquo;s a bit hidden in the code that you need to set it but you do, you will need this later so remember it! Since I am bad at remembering things I named it … <code>howl</code> … again.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="p">{</span><span class="n">rt_cookie</span><span class="p">,</span> <span class="n">howl</span><span class="p">},</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    {rt_cookie, howl},
+</code></pre>
 
 <p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>/Users/heinz/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
 
@@ -1298,119 +1137,64 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Note that by default <code>riak_test</code> will run tests on the <code>current</code> environment</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%% Paths to the locations of various versions of the project. This</span>
-</span><span class='line'><span class="c">%% is only valid for the `rtdev&#39; harness.</span>
-</span><span class='line'><span class="p">{</span><span class="n">rtdev_path</span><span class="p">,</span> <span class="p">[</span>
-</span><span class='line'>              <span class="c">%% This is the root of the built `rtdev&#39; repository,</span>
-</span><span class='line'>              <span class="c">%% used for manipulating the repo with git. All</span>
-</span><span class='line'>              <span class="c">%% versions should be inside this directory.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">root</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="c">%% The path to the `current&#39; version, which is used</span>
-</span><span class='line'>              <span class="c">%% exclusively except during upgrade tests.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">current</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-test&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="c">%% The path to the most immediately previous version</span>
-</span><span class='line'>              <span class="c">%% of the project, which is used when doing upgrade</span>
-</span><span class='line'>              <span class="c">%% tests.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">previous</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-dev&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="c">%% The path to the version before `previous&#39;, which</span>
-</span><span class='line'>              <span class="c">%% is used when doing upgrade tests.</span>
-</span><span class='line'>              <span class="p">{</span><span class="n">legacy</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-stable&quot;</span><span class="p">}</span>
-</span><span class='line'>             <span class="p">]}</span>
-</span><span class='line'><span class="p">]}</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">    %% Paths to the locations of various versions of the project. This
+    %% is only valid for the `rtdev' harness.
+    {rtdev_path, [
+                  %% This is the root of the built `rtdev' repository,
+                  %% used for manipulating the repo with git. All
+                  %% versions should be inside this directory.
+                  {root, "/Users/heinz/rt/howl"},
 
+                  %% The path to the `current' version, which is used
+                  %% exclusively except during upgrade tests.
+                  {current, "/Users/heinz/rt/howl/howl-test"},
+
+                  %% The path to the most immediately previous version
+                  %% of the project, which is used when doing upgrade
+                  %% tests.
+                  {previous, "/Users/heinz/rt/howl/howl-dev"},
+
+                  %% The path to the version before `previous', which
+                  %% is used when doing upgrade tests.
+                  {legacy, "/Users/heinz/rt/howl/howl-stable"}
+                 ]}
+]}
+</code></pre>
 
 <p>And that&rsquo;s it now the config is set up and should look like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="p">{</span><span class="n">rtdev</span><span class="p">,</span> <span class="p">[</span>
-</span><span class='line'>    <span class="c">%% The name of the project/product, used when fetching the test</span>
-</span><span class='line'>    <span class="c">%% suite and reporting.</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">rt_project</span><span class="p">,</span> <span class="s">&quot;howl&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="p">{</span><span class="n">rc_executable</span><span class="p">,</span> <span class="s">&quot;rhowl&quot;</span><span class="p">},</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">rc_admin</span><span class="p">,</span> <span class="s">&quot;howl-admin&quot;</span><span class="p">},</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">rc_services</span><span class="p">,</span> <span class="p">[</span><span class="n">howl</span><span class="p">]},</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">rt_cookie</span><span class="p">,</span> <span class="n">howl</span><span class="p">},</span>
-</span><span class='line'>    <span class="c">%% Paths to the locations of various versions of the project. This</span>
-</span><span class='line'>    <span class="c">%% is only valid for the `rtdev&#39; harness.</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">rtdev_path</span><span class="p">,</span> <span class="p">[</span>
-</span><span class='line'>                  <span class="c">%% This is the root of the built `rtdev&#39; repository,</span>
-</span><span class='line'>                  <span class="c">%% used for manipulating the repo with git. All</span>
-</span><span class='line'>                  <span class="c">%% versions should be inside this directory.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">root</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="c">%% The path to the `current&#39; version, which is used</span>
-</span><span class='line'>                  <span class="c">%% exclusively except during upgrade tests.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">current</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-test&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="c">%% The path to the most immediately previous version</span>
-</span><span class='line'>                  <span class="c">%% of the project, which is used when doing upgrade</span>
-</span><span class='line'>                  <span class="c">%% tests.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">previous</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-dev&quot;</span><span class="p">},</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="c">%% The path to the version before `previous&#39;, which</span>
-</span><span class='line'>                  <span class="c">%% is used when doing upgrade tests.</span>
-</span><span class='line'>                  <span class="p">{</span><span class="n">legacy</span><span class="p">,</span> <span class="s">&quot;/Users/heinz/rt/howl/howl-stable&quot;</span><span class="p">}</span>
-</span><span class='line'>                 <span class="p">]}</span>
-</span><span class='line'><span class="p">]}</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">{rtdev, [
+    %% The name of the project/product, used when fetching the test
+    %% suite and reporting.
+    {rt_project, "howl"},
 
+    {rc_executable, "rhowl"},
+    {rc_admin, "howl-admin"},
+    {rc_services, [howl]},
+    {rt_cookie, howl},
+    %% Paths to the locations of various versions of the project. This
+    %% is only valid for the `rtdev' harness.
+    {rtdev_path, [
+                  %% This is the root of the built `rtdev' repository,
+                  %% used for manipulating the repo with git. All
+                  %% versions should be inside this directory.
+                  {root, "/Users/heinz/rt/howl"},
+
+                  %% The path to the `current' version, which is used
+                  %% exclusively except during upgrade tests.
+                  {current, "/Users/heinz/rt/howl/howl-test"},
+
+                  %% The path to the most immediately previous version
+                  %% of the project, which is used when doing upgrade
+                  %% tests.
+                  {previous, "/Users/heinz/rt/howl/howl-dev"},
+
+                  %% The path to the version before `previous', which
+                  %% is used when doing upgrade tests.
+                  {legacy, "/Users/heinz/rt/howl/howl-stable"}
+                 ]}
+]}
+</code></pre>
 
 <h2>Setting up the application</h2>
 
@@ -1418,86 +1202,51 @@ better. That alone was worth every second of time invested.</p>
 
 <p>The first step is that we need the folder, so lets create it</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">howl</span>
-</span><span class='line'><span class="n">cd</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">howl</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>mkdir -p /Users/heinz/rt/raw/howl
+cd /Users/heinz/rt/raw/howl
+</code></pre>
 
 <p>Since howl lives with the octocat on github it&rsquo;s easy to fetch our application and checkout the test branch (remember <code>current</code> is on the test branch for me):</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">git</span> <span class="n">clone</span> <span class="nn">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">project</span><span class="o">-</span><span class="n">fifo</span><span class="o">/</span><span class="n">howl</span><span class="p">.</span><span class="n">git</span> <span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">cd</span> <span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">git</span> <span class="n">checkout</span> <span class="n">test</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>git clone https://github.com/project-fifo/howl.git howl-test
+cd howl-test
+git checkout test
+</code></pre>
 
 <p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying the.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">make</span> <span class="n">stagedevrel</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>make stagedevrel
+</code></pre>
 
 <p>Now we&rsquo;ve to do a bit of a cheating, riak_text expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set up as git repositor.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span>
-</span><span class='line'><span class="n">cd</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span>
-</span><span class='line'><span class="n">git</span> <span class="n">init</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">cat</span> <span class="o">&lt;&lt;</span><span class="nv">EOF</span> <span class="o">&gt;</span> <span class="o">/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span><span class="o">/</span><span class="p">.</span><span class="n">gitignore</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">bin</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">erts</span><span class="o">-*</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">lib</span>
-</span><span class='line'><span class="o">*/</span><span class="n">dev</span><span class="o">/*/</span><span class="n">releases</span>
-</span><span class='line'><span class="nv">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code>mkdir -p /Users/heinz/rt/howl
+cd /Users/heinz/rt/howl
+git init
 
+cat &lt;&lt;EOF &gt; /Users/heinz/rt/howl/.gitignore
+*/dev/*/bin
+*/dev/*/erts-*
+*/dev/*/lib
+*/dev/*/releases
+EOF
+</code></pre>
 
 <p>Now we need to link our devrel files and for my setup I&rsquo;ve to copy the <code>*.example</code> files of the <code>app.config</code> and <code>vm.args</code> into the right place they might be named differently for you.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">export</span> <span class="nv">RT_BASE</span><span class="o">=/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">howl</span><span class="o">/</span><span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">export</span> <span class="nv">RC_BASE</span><span class="o">=/</span><span class="nv">Users</span><span class="o">/</span><span class="n">heinz</span><span class="o">/</span><span class="n">rt</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">howl</span><span class="o">/</span><span class="n">howl</span><span class="o">-</span><span class="n">test</span>
-</span><span class='line'><span class="n">for</span> <span class="n">i</span> <span class="n">in</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span>
-</span><span class='line'><span class="n">do</span>
-</span><span class='line'>  <span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="sc">${</span><span class="nv">RT_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span>
-</span><span class='line'>  <span class="n">cd</span> <span class="sc">${</span><span class="nv">RT_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span>
-</span><span class='line'>  <span class="n">mkdir</span> <span class="n">data</span> <span class="n">etc</span>
-</span><span class='line'>  <span class="n">touch</span> <span class="n">data</span><span class="o">/</span><span class="p">.</span><span class="n">gitignore</span>
-</span><span class='line'>  <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="sc">${</span><span class="nv">RC_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">bin</span><span class="p">,</span><span class="n">erts</span><span class="o">-*</span><span class="p">,</span><span class="n">lib</span><span class="p">,</span><span class="n">releases</span><span class="p">}</span> <span class="p">.</span>
-</span><span class='line'>  <span class="n">cp</span> <span class="sc">${</span><span class="nv">RC_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">vm</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">example</span> <span class="n">etc</span><span class="o">/</span><span class="n">vm</span><span class="p">.</span><span class="n">args</span>
-</span><span class='line'>  <span class="n">cp</span> <span class="sc">${</span><span class="nv">RC_BASE</span><span class="p">}</span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">dev</span><span class="sc">${</span><span class="n">i</span><span class="p">}</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">example</span> <span class="n">etc</span><span class="o">/</span><span class="n">app</span><span class="p">.</span><span class="n">config</span>
-</span><span class='line'><span class="n">done</span>
-</span><span class='line'>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>export RT_BASE=/Users/heinz/rt/howl/howl-test
+export RC_BASE=/Users/heinz/rt/raw/howl/howl-test
+for i in 1 2 3 4
+do
+  mkdir -p ${RT_BASE}/dev/dev${i}/
+  cd ${RT_BASE}/dev/dev${i}/
+  mkdir data etc
+  touch data/.gitignore
+  ln -s ${RC_BASE}/dev/dev${i}/{bin,erts-*,lib,releases} .
+  cp ${RC_BASE}/dev/dev${i}/etc/vm.args.example etc/vm.args
+  cp ${RC_BASE}/dev/dev${i}/etc/app.config.example etc/app.config
+done
+</code></pre>
 
 <p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie - I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
 
@@ -1509,12 +1258,9 @@ better. That alone was worth every second of time invested.</p>
 
 <p>We&rsquo;ll want to run it to see if <code>howl</code> is a good boy and does well to do so we&rsquo;ll need to get back into the <code>riak_test</code> folder and run the <code>riak_test</code> command:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">cd</span> <span class="err">~</span><span class="o">/</span><span class="nv">Projects</span><span class="o">/</span><span class="n">riak_test</span>
-</span><span class='line'><span class="p">.</span><span class="o">/</span><span class="n">riak_test</span> <span class="o">-</span><span class="n">t</span> <span class="n">tests</span><span class="o">/*</span> <span class="o">-</span><span class="n">c</span> <span class="n">howl</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">b</span> <span class="n">none</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>cd ~/Projects/riak_test
+./riak_test -t tests/* -c howl -v -b none
+</code></pre>
 
 <p>I&rsquo;d like to explain this a bit, the arguments have the following meaning:</p>
 
@@ -1563,40 +1309,23 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Sometimes a plugin just want to know that something happened but don&rsquo;t care about the result. <code>eplugin</code> provides the <code>call</code> (and <code>apply</code>) functions for that. A logger is a good example for this so lets have a look:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">syslog_plugin</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">syslog_plugin</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% syslog_plugin.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">syslog_plugin</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">log</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">log</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">os</span><span class="p">:</span><span class="nf">cmd</span><span class="p">(</span><span class="s">&quot;logger &#39;&quot;</span> <span class="o">++</span> <span class="nv">String</span> <span class="o">++</span> <span class="s">&quot;&#39;&quot;</span><span class="p">).</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="nn">eplugin</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="s">&quot;logging this!&quot;</span><span class="p">),</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">%%% plugin.conf
+{syslog_plugin,
+  [{syslog_plugin, [{'some:event', log}]}],
+  []}.
 
+%%% syslog_plugin.erl
+-module(syslog_plugin).
+-export([log/1]).
+
+log(String) -&gt;
+  os:cmd("logger '" ++ String ++ "'").
+
+%%% in your code
+  %%... 
+  eplugin:call('some:event', "logging this!"),
+  %%... 
+</code></pre>
 
 <p>Thats pretty much it, provided you&rsquo;ve started the <code>eplugin</code> application in your code and put the plugins in the right place this will just work. You could also use this to trigger side effects, like delete all files when an error occurs to remove traces of your failure.</p>
 
@@ -1604,38 +1333,22 @@ better. That alone was worth every second of time invested.</p>
 
 <p>This kind of plugins process some data and return a new version of this data, we have <code>fold</code> for this case. Fold since it internally uses fold to pass the data from one plugin to another. there are many applications for that one would be to replace all occurrences of &lsquo;not js&rsquo; with &lsquo;node.js&rsquo; to prevent freudian typos in your texts.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">not_js</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">not_js</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="n">replace</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% not_js.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">not_js</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">replace</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">re</span><span class="p">:</span><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">,</span> <span class="s">&quot;not js&quot;</span><span class="p">,</span> <span class="s">&quot;node.js&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">global</span><span class="p">]).</span>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="nv">String1</span> <span class="o">=</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">fold</span><span class="p">(</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="s">&quot;I&#39;m writing a not js application!&quot;</span><span class="p">),</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">%%% plugin.conf
+{not_js,
+  [{not_js, [{'text:check', replace}]}],
+  []}.
 
+%%% not_js.erl
+-module(not_js).
+-export([replace/1]).
+
+replace(String) -&gt;
+  re:replace(String, "not js", "node.js", [global]).
+%%% in your code
+  %%... 
+  String1 = eplugin:fold('text:check', "I'm writing a not js application!"),
+  %%... 
+</code></pre>
 
 <p><code>fold</code> and <code>call</code> are the most interesting and important kind of plugins, they cover most if not all of the possible use cases of plugins so there is a special case left which I found useful to have.</p>
 
@@ -1643,50 +1356,28 @@ better. That alone was worth every second of time invested.</p>
 
 <p>Checking plugins are plugins which are supposed to decide if something is Ok or not, they are pretty much a case of <code>fold</code> that returns true or false (or actually whatever is not true). But <code>eplugin</code> solves this too, with the <code>test</code> function! An example here is authentication</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">get_out</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">get_out</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="n">no_really_not</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% get_out.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">get_out</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">no_really_not</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">no_really_not</span><span class="p">(</span><span class="nv">Login</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="p">{</span><span class="n">forbidden</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;Dear &quot;</span><span class="p">,</span> <span class="nv">Login</span><span class="p">,</span> <span class="s">&quot; we don&#39;t want you here go away!&quot;</span><span class="p">]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="k">case</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">test</span><span class="p">(</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="s">&quot;Licenser&quot;</span><span class="p">)</span> <span class="k">of</span>
-</span><span class='line'>     <span class="n">true</span> <span class="o">-&gt;</span>
-</span><span class='line'>      <span class="c">%%% huzza!</span>
-</span><span class='line'>     <span class="nv">Error</span> <span class="o">-&gt;</span>
-</span><span class='line'>      <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~p~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Error</span><span class="p">])</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">%%% plugin.conf
+{get_out,
+  [{get_out, [{'login:allowed', no_really_not}]}],
+  []}.
 
+%%% get_out.erl
+-module(get_out).
+-export([no_really_not/1]).
+
+no_really_not(Login) -&gt;
+  {forbidden, ["Dear ", Login, " we don't want you here go away!"]}.
+
+%%% in your code
+  %%... 
+  case eplugin:test('login:allowed', "Licenser") of
+     true -&gt;
+        %%% huzza!
+     Error -&gt;
+        io:format("~p~n", [Error])
+  end
+  %%... 
+</code></pre>
 ]]></content>
   </entry>
   
@@ -1738,51 +1429,33 @@ better. That alone was worth every second of time invested.</p>
 
 <p><img src="http://blog.licenser.net/images/posts/2013-01-28-erlang-and-more-dtrace-1.png" alt="Erlang Call Heatmap" /></p>
 
-<p>The script used (also included in the repository):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">lquantize</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The script used (also included in the repository):
+<code>d
+erlang*:::global-function-entry
+{
+  self-&gt;funcall_entry_ts[copyinstr(arg1)] = vtimestamp;
+}
+erlang*:::function-return
+{
+  @time[copyinstr(arg1)] = lquantize((vtimestamp - self-&gt;funcall_entry_ts[copyinstr(arg1)] ) / 1000, 0, 63, 2);
+}
+</code></p>
 
 <p>Now that is already cool <strong>but</strong> there is more, in addition to there is a page now that allows to show list based queries (as count or sum) so for example it would be very easy to get a profiling of an Erlang program like this:</p>
 
 <p><img src="http://blog.licenser.net/images/posts/2013-01-28-erlang-and-more-dtrace-2.png" alt="Erlang Profiling" /></p>
 
-<p>The script used (also included in the repository):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">sum</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The script used (also included in the repository):
+<code>d
+erlang*:::global-function-entry
+{
+  self-&gt;funcall_entry_ts[copyinstr(arg1)] = vtimestamp;
+}
+erlang*:::function-return
+{
+  @time[copyinstr(arg1)] = sum((vtimestamp - self-&gt;funcall_entry_ts[copyinstr(arg1)] ) / 1000);
+}
+</code></p>
 
 <p>Cool thing is this profiling can be turned on and off in a live system and has a <strong>comparable low</strong> performance impact (less then 50% unless functions are hammering in my tests).</p>
 
@@ -1807,126 +1480,78 @@ better. That alone was worth every second of time invested.</p>
 
 <p>When connecting we set up a timer to inform us every second to gather the results from DTrace:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_init</span><span class="p">(_</span><span class="nv">Any</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">[])</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">timer</span><span class="p">:</span><span class="nf">send_interval</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tick</span><span class="p">),</span>
-</span><span class='line'>  <span class="nv">Req2</span> <span class="o">=</span> <span class="nn">cowboy_http_req</span><span class="p">:</span><span class="nf">compact</span><span class="p">(</span><span class="nv">Req</span><span class="p">),</span>
-</span><span class='line'>  <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req2</span><span class="p">,</span> <span class="n">undefined</span><span class="p">,</span> <span class="n">hibernate</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_init(_Any, Req, []) -&gt;
+    timer:send_interval(1000, tick),
+    Req2 = cowboy_http_req:compact(Req),
+    {ok, Req2, undefined, hibernate}.
+</code></pre>
 
 <p>Next up we handle incoming Websockets messages, this deals very simple. Every string that is send is considered a new dtrace script to execute.</p>
 
 <p>The first part creates a new handler, this is pretty much a reference to the libdtrace internal data structures. Since we allow multiple scripts to be send we also have to ensure that the old sockets are closed before new ones are opened.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_handle</span><span class="p">({</span><span class="n">text</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">},</span> <span class="nv">Req</span><span class="p">,</span> <span class="nv">State</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="c">%% We create a new handler</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}</span> <span class="o">=</span> <span class="k">case</span> <span class="nv">State</span> <span class="k">of</span>
-</span><span class='line'>                       <span class="n">undefined</span> <span class="o">-&gt;</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">();</span>
-</span><span class='line'>                       <span class="p">{</span><span class="nv">Old</span><span class="p">}</span> <span class="o">-&gt;</span>
-</span><span class='line'>                           <span class="c">%% But we want to make sure that any old one is closed first.</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">close</span><span class="p">(</span><span class="nv">Old</span><span class="p">),</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">()</span>
-</span><span class='line'>                   <span class="k">end</span><span class="p">,</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_handle({text, Msg}, Req, State) -&gt;
+    %% We create a new handler
+    {ok, Handle} = case State of
+                       undefined -&gt;
+                           erltrace:open();
+                       {Old} -&gt;
+                           %% But we want to make sure that any old one is closed first.
+                           erltrace:close(Old),
+                           erltrace:open()
+                   end,
+</code></pre>
 
 <p>Next we compile the dtrace script, <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> only takes lists as strings and not binaries so we&rsquo;ve to convert it first and then we pass it along with our handle to get the script compiled. It will return <code>ok</code> if everything went well.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%% We&#39;ve to confert cowboys binary to a list.</span>
-</span><span class='line'><span class="nv">Msg1</span> <span class="o">=</span> <span class="nb">binary_to_list</span><span class="p">(</span><span class="nv">Msg</span><span class="p">),</span>
-</span><span class='line'><span class="n">ok</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">compile</span><span class="p">(</span><span class="nv">Handle</span><span class="p">,</span> <span class="nv">Msg1</span><span class="p">),</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    %% We've to confert cowboys binary to a list.
+    Msg1 = binary_to_list(Msg),
+    ok = erltrace:compile(Handle, Msg1),
+</code></pre>
 
 <p>Okay now that we&rsquo;ve compiled the script we just need to tell dtrace to start running it, this happens with the <code>erltrace:go</code> call. Again it will return <code>ok</code> when everything is fine. Finally we just output the script as debug info and return.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">ok</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">go</span><span class="p">(</span><span class="nv">Handle</span><span class="p">),</span>
-</span><span class='line'><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;SCRIPT&gt; </span><span class="si">~s~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Msg</span><span class="p">]),</span>
-</span><span class='line'><span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg1</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    ok = erltrace:go(Handle),
+    io:format("SCRIPT&gt; ~s~n", [Msg]),
+    {ok, Req, {Msg1, Handle}};
+</code></pre>
 
 <p>Next up: reading the dtrace data, <code>erltrace:walk</code> do that for you and hand back a datastructur to parse. It is returned as <code>{ok, Data}</code> when there is something to handle.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_info</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}</span> <span class="o">=</span> <span class="nv">State</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>     <span class="k">case</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">walk</span><span class="p">(</span><span class="nv">Handle</span><span class="p">)</span> <span class="k">of</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">R</span><span class="p">}</span> <span class="o">-&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_info(tick, Req, {Msg, Handle} = State) -&gt;
+     case erltrace:walk(Handle) of
+         {ok, R} -&gt;
+</code></pre>
 
 <p>Now since we have JSON on the other side we need to transform the data here Erlangs list comprehensions come to the rescue. Data is returned as <code>[{lquantize, [Name], { {BucketStart, BucketEnd
 }, BucketCount}}]</code> and we want it in the form <code>{Name, [[BucketStart, BucketEnd], BucketCount]</code> so here you go. We can tehn simpley encode this with <a href="https://github.com/talentdeficit/jsx">jsx</a> and send it over the wire:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>         <span class="nv">JSON</span> <span class="o">=</span> <span class="p">[{</span><span class="nb">list_to_binary</span><span class="p">(</span><span class="nv">Call</span><span class="p">),[</span> <span class="p">[[</span><span class="nv">S</span><span class="p">,</span> <span class="nv">E</span><span class="p">],</span> <span class="nv">V</span><span class="p">]||</span> <span class="p">{</span> <span class="p">{</span><span class="nv">S</span><span class="p">,</span> <span class="nv">E</span><span class="p">},</span> <span class="nv">V</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">Vs</span><span class="p">]}||</span> <span class="p">{</span><span class="n">lquantize</span><span class="p">,</span> <span class="p">[</span><span class="nv">Call</span><span class="p">],</span> <span class="nv">Vs</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">R</span><span class="p">],</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">reply</span><span class="p">,</span> <span class="p">{</span><span class="n">text</span><span class="p">,</span> <span class="nn">jsx</span><span class="p">:</span><span class="nf">encode</span><span class="p">(</span><span class="nv">JSON</span><span class="p">)},</span> <span class="nv">Req</span><span class="p">,</span> <span class="nv">State</span><span class="p">,</span> <span class="n">hibernate</span><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">             JSON = [{list_to_binary(Call),[ [[S, E], V]|| { {S, E}, V} &lt;- Vs]}|| {lquantize, [Call], Vs} &lt;- R],
+             {reply, {text, jsx:encode(JSON)}, Req, State, hibernate};
+</code></pre>
 
 <p><code>ok</code> will be returned if there is no data yet to consume, we simply do nothing here.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>     <span class="n">ok</span> <span class="o">-&gt;</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">         ok -&gt;
+             {ok, Req, {Msg, Handle1}};
+</code></pre>
 
 <p>The last case is just for making things proper, if an error is returned we close stop the current handle and create a new one the same we did in the init.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>     <span class="nv">Other</span> <span class="o">-&gt;</span>
-</span><span class='line'>         <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Error: </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">E</span><span class="p">]),</span>
-</span><span class='line'>         <span class="k">try</span>
-</span><span class='line'>             <span class="nn">erltrace</span><span class="p">:</span><span class="nf">stop</span><span class="p">(</span><span class="nv">Handle</span><span class="p">)</span>
-</span><span class='line'>         <span class="k">catch</span>
-</span><span class='line'>             <span class="p">_:_</span> <span class="o">-&gt;</span>
-</span><span class='line'>                 <span class="n">ok</span>
-</span><span class='line'>         <span class="k">end</span><span class="p">,</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">(),</span>
-</span><span class='line'>         <span class="nn">erltrace</span><span class="p">:</span><span class="nf">compile</span><span class="p">(</span><span class="nv">Handle1</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">),</span>
-</span><span class='line'>         <span class="nn">erltrace</span><span class="p">:</span><span class="nf">go</span><span class="p">(</span><span class="nv">Handle</span><span class="p">),</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}}</span>
-</span><span class='line'> <span class="k">end</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">         Other -&gt;
+             io:format("Error: ~p", [E]),
+             try
+                 erltrace:stop(Handle)
+             catch
+                 _:_ -&gt;
+                     ok
+             end,
+             {ok, Handle1} = erltrace:open(),
+             erltrace:compile(Handle1, Msg),
+             erltrace:go(Handle),
+             {ok, Req, {Msg, Handle1}}
+     end;
+</code></pre>
 
 <p>Now that all put together and run it on a dtrace capable machine we get a nice little heatmap that updates every second:</p>
 

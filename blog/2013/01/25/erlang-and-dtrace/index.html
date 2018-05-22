@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -89,7 +89,7 @@
 
 
 
-<time class='entry-date' datetime='2013-01-25T00:21:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:21 am</span></time>
+
         
       </p>
     
@@ -106,126 +106,78 @@
 
 <p>When connecting we set up a timer to inform us every second to gather the results from DTrace:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_init</span><span class="p">(_</span><span class="nv">Any</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">[])</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">timer</span><span class="p">:</span><span class="nf">send_interval</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tick</span><span class="p">),</span>
-</span><span class='line'>  <span class="nv">Req2</span> <span class="o">=</span> <span class="nn">cowboy_http_req</span><span class="p">:</span><span class="nf">compact</span><span class="p">(</span><span class="nv">Req</span><span class="p">),</span>
-</span><span class='line'>  <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req2</span><span class="p">,</span> <span class="n">undefined</span><span class="p">,</span> <span class="n">hibernate</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_init(_Any, Req, []) -&gt;
+    timer:send_interval(1000, tick),
+    Req2 = cowboy_http_req:compact(Req),
+    {ok, Req2, undefined, hibernate}.
+</code></pre>
 
 <p>Next up we handle incoming Websockets messages, this deals very simple. Every string that is send is considered a new dtrace script to execute.</p>
 
 <p>The first part creates a new handler, this is pretty much a reference to the libdtrace internal data structures. Since we allow multiple scripts to be send we also have to ensure that the old sockets are closed before new ones are opened.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_handle</span><span class="p">({</span><span class="n">text</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">},</span> <span class="nv">Req</span><span class="p">,</span> <span class="nv">State</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="c">%% We create a new handler</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}</span> <span class="o">=</span> <span class="k">case</span> <span class="nv">State</span> <span class="k">of</span>
-</span><span class='line'>                       <span class="n">undefined</span> <span class="o">-&gt;</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">();</span>
-</span><span class='line'>                       <span class="p">{</span><span class="nv">Old</span><span class="p">}</span> <span class="o">-&gt;</span>
-</span><span class='line'>                           <span class="c">%% But we want to make sure that any old one is closed first.</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">close</span><span class="p">(</span><span class="nv">Old</span><span class="p">),</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">()</span>
-</span><span class='line'>                   <span class="k">end</span><span class="p">,</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_handle({text, Msg}, Req, State) -&gt;
+    %% We create a new handler
+    {ok, Handle} = case State of
+                       undefined -&gt;
+                           erltrace:open();
+                       {Old} -&gt;
+                           %% But we want to make sure that any old one is closed first.
+                           erltrace:close(Old),
+                           erltrace:open()
+                   end,
+</code></pre>
 
 <p>Next we compile the dtrace script, <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> only takes lists as strings and not binaries so we&rsquo;ve to convert it first and then we pass it along with our handle to get the script compiled. It will return <code>ok</code> if everything went well.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%% We&#39;ve to confert cowboys binary to a list.</span>
-</span><span class='line'><span class="nv">Msg1</span> <span class="o">=</span> <span class="nb">binary_to_list</span><span class="p">(</span><span class="nv">Msg</span><span class="p">),</span>
-</span><span class='line'><span class="n">ok</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">compile</span><span class="p">(</span><span class="nv">Handle</span><span class="p">,</span> <span class="nv">Msg1</span><span class="p">),</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    %% We've to confert cowboys binary to a list.
+    Msg1 = binary_to_list(Msg),
+    ok = erltrace:compile(Handle, Msg1),
+</code></pre>
 
 <p>Okay now that we&rsquo;ve compiled the script we just need to tell dtrace to start running it, this happens with the <code>erltrace:go</code> call. Again it will return <code>ok</code> when everything is fine. Finally we just output the script as debug info and return.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">ok</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">go</span><span class="p">(</span><span class="nv">Handle</span><span class="p">),</span>
-</span><span class='line'><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;SCRIPT&gt; </span><span class="si">~s~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Msg</span><span class="p">]),</span>
-</span><span class='line'><span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg1</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    ok = erltrace:go(Handle),
+    io:format("SCRIPT&gt; ~s~n", [Msg]),
+    {ok, Req, {Msg1, Handle}};
+</code></pre>
 
 <p>Next up: reading the dtrace data, <code>erltrace:walk</code> do that for you and hand back a datastructur to parse. It is returned as <code>{ok, Data}</code> when there is something to handle.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_info</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}</span> <span class="o">=</span> <span class="nv">State</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>     <span class="k">case</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">walk</span><span class="p">(</span><span class="nv">Handle</span><span class="p">)</span> <span class="k">of</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">R</span><span class="p">}</span> <span class="o">-&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_info(tick, Req, {Msg, Handle} = State) -&gt;
+     case erltrace:walk(Handle) of
+         {ok, R} -&gt;
+</code></pre>
 
 <p>Now since we have JSON on the other side we need to transform the data here Erlangs list comprehensions come to the rescue. Data is returned as <code>[{lquantize, [Name], { {BucketStart, BucketEnd
 }, BucketCount}}]</code> and we want it in the form <code>{Name, [[BucketStart, BucketEnd], BucketCount]</code> so here you go. We can tehn simpley encode this with <a href="https://github.com/talentdeficit/jsx">jsx</a> and send it over the wire:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>         <span class="nv">JSON</span> <span class="o">=</span> <span class="p">[{</span><span class="nb">list_to_binary</span><span class="p">(</span><span class="nv">Call</span><span class="p">),[</span> <span class="p">[[</span><span class="nv">S</span><span class="p">,</span> <span class="nv">E</span><span class="p">],</span> <span class="nv">V</span><span class="p">]||</span> <span class="p">{</span> <span class="p">{</span><span class="nv">S</span><span class="p">,</span> <span class="nv">E</span><span class="p">},</span> <span class="nv">V</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">Vs</span><span class="p">]}||</span> <span class="p">{</span><span class="n">lquantize</span><span class="p">,</span> <span class="p">[</span><span class="nv">Call</span><span class="p">],</span> <span class="nv">Vs</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">R</span><span class="p">],</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">reply</span><span class="p">,</span> <span class="p">{</span><span class="n">text</span><span class="p">,</span> <span class="nn">jsx</span><span class="p">:</span><span class="nf">encode</span><span class="p">(</span><span class="nv">JSON</span><span class="p">)},</span> <span class="nv">Req</span><span class="p">,</span> <span class="nv">State</span><span class="p">,</span> <span class="n">hibernate</span><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">             JSON = [{list_to_binary(Call),[ [[S, E], V]|| { {S, E}, V} &lt;- Vs]}|| {lquantize, [Call], Vs} &lt;- R],
+             {reply, {text, jsx:encode(JSON)}, Req, State, hibernate};
+</code></pre>
 
 <p><code>ok</code> will be returned if there is no data yet to consume, we simply do nothing here.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>     <span class="n">ok</span> <span class="o">-&gt;</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">         ok -&gt;
+             {ok, Req, {Msg, Handle1}};
+</code></pre>
 
 <p>The last case is just for making things proper, if an error is returned we close stop the current handle and create a new one the same we did in the init.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>     <span class="nv">Other</span> <span class="o">-&gt;</span>
-</span><span class='line'>         <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Error: </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">E</span><span class="p">]),</span>
-</span><span class='line'>         <span class="k">try</span>
-</span><span class='line'>             <span class="nn">erltrace</span><span class="p">:</span><span class="nf">stop</span><span class="p">(</span><span class="nv">Handle</span><span class="p">)</span>
-</span><span class='line'>         <span class="k">catch</span>
-</span><span class='line'>             <span class="p">_:_</span> <span class="o">-&gt;</span>
-</span><span class='line'>                 <span class="n">ok</span>
-</span><span class='line'>         <span class="k">end</span><span class="p">,</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">(),</span>
-</span><span class='line'>         <span class="nn">erltrace</span><span class="p">:</span><span class="nf">compile</span><span class="p">(</span><span class="nv">Handle1</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">),</span>
-</span><span class='line'>         <span class="nn">erltrace</span><span class="p">:</span><span class="nf">go</span><span class="p">(</span><span class="nv">Handle</span><span class="p">),</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}}</span>
-</span><span class='line'> <span class="k">end</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">         Other -&gt;
+             io:format("Error: ~p", [E]),
+             try
+                 erltrace:stop(Handle)
+             catch
+                 _:_ -&gt;
+                     ok
+             end,
+             {ok, Handle1} = erltrace:open(),
+             erltrace:compile(Handle1, Msg),
+             erltrace:go(Handle),
+             {ok, Req, {Msg, Handle1}}
+     end;
+</code></pre>
 
 <p>Now that all put together and run it on a dtrace capable machine we get a nice little heatmap that updates every second:</p>
 
@@ -238,21 +190,19 @@
   <footer>
     <p class="meta">
       
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2013-01-25T00:21:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:21 am</span></time>
+
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/dtrace/'>dtrace</a>, <a class='category' href='/blog/categories/erlang/'>erlang</a>, <a class='category' href='/blog/categories/fifo/'>fifo</a>, <a class='category' href='/blog/categories/smartos/'>smartos</a>
+    ErlangDTraceSmartOSFiFo
   
 </span>
 
@@ -294,6 +244,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
       </li>
     
@@ -309,17 +263,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -356,7 +306,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -89,7 +89,7 @@
 
 
 
-<time class='entry-date' datetime='2013-04-09T23:33:00+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>11:33 pm</span></time>
+
         
       </p>
     
@@ -119,16 +119,11 @@
 
 <p><code>riak_test</code> offers a way to start instances of your application and communicate with them, the common pattern is to start one (or more) nodes as first part of the script and check of they are up and running. That could look something like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">confirm</span><span class="p">()</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">[</span><span class="nv">Node</span><span class="p">]</span> <span class="o">=</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">deploy_nodes</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">wait_until_nodes_ready</span><span class="p">([</span><span class="nv">Node</span><span class="p">])),</span>
-</span><span class='line'>    <span class="n">pass</span><span class="p">.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">confirm() -&gt;
+    [Node] = rt:deploy_nodes(1),
+    ?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
+    pass.
+</code></pre>
 
 <p>This is a minimal test it sets up one instance of our application and waits for it to be ready.</p>
 
@@ -146,38 +141,22 @@
 
 <p>So backchannel to the rescue! We&rsquo;ll just get the nodes configuration from the host, for my application I store this kind of information in the application configuration so I&rsquo;ve made a function that given a <code>Node</code> returns <code>IP</code> and <code>Port</code> for it to talk to plus one to send data:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">node_endpoing</span><span class="p">(</span><span class="nv">Node</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">IP</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rpc</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">get_env</span><span class="p">,</span> <span class="p">[</span><span class="n">mdns_server_lib</span><span class="p">,</span> <span class="n">ip</span><span class="p">]),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Port</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rpc</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">get_env</span><span class="p">,</span> <span class="p">[</span><span class="n">mdns_server_lib</span><span class="p">,</span> <span class="n">port</span><span class="p">]),</span>
-</span><span class='line'>    <span class="p">{</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">{</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">}</span> <span class="o">=</span> <span class="n">node_endpoing</span><span class="p">(</span><span class="nv">Node</span><span class="p">),</span>
-</span><span class='line'>    <span class="nn">lager</span><span class="p">:</span><span class="nf">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~s</span><span class="s">:</span><span class="si">~p</span><span class="s"> &lt;- </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">]),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Socket</span><span class="p">}</span> <span class="o">=</span> <span class="nn">gen_tcp</span><span class="p">:</span><span class="nf">connect</span><span class="p">(</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">,</span> <span class="p">[</span><span class="n">binary</span><span class="p">,</span> <span class="p">{</span><span class="n">active</span><span class="p">,</span><span class="n">false</span><span class="p">},</span> <span class="p">{</span><span class="n">packet</span><span class="p">,</span><span class="mi">4</span><span class="p">}],</span> <span class="mi">100</span><span class="p">),</span>
-</span><span class='line'>    <span class="n">ok</span> <span class="o">=</span> <span class="nn">gen_tcp</span><span class="p">:</span><span class="nb">send</span><span class="p">(</span><span class="nv">Socket</span><span class="p">,</span> <span class="nb">term_to_binary</span><span class="p">(</span><span class="nv">Msg</span><span class="p">)),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Repl</span><span class="p">}</span> <span class="o">=</span> <span class="nn">gen_tcp</span><span class="p">:</span><span class="nf">recv</span><span class="p">(</span><span class="nv">Socket</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">reply</span><span class="p">,</span> <span class="nv">Res</span><span class="p">}</span> <span class="o">=</span> <span class="nb">binary_to_term</span><span class="p">(</span><span class="nv">Repl</span><span class="p">),</span>
-</span><span class='line'>    <span class="nn">lager</span><span class="p">:</span><span class="nf">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~s</span><span class="s">:</span><span class="si">~p</span><span class="s"> -&gt; </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">IP</span><span class="p">,</span> <span class="nv">Port</span><span class="p">,</span> <span class="nv">Res</span><span class="p">]),</span>
-</span><span class='line'>    <span class="nn">gen_tcp</span><span class="p">:</span><span class="nf">close</span><span class="p">(</span><span class="nv">Socket</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">Res</span><span class="p">.</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">node_endpoing(Node) -&gt;
+    {ok, IP} = rpc:call(Node, application, get_env, [mdns_server_lib, ip]),
+    {ok, Port} = rpc:call(Node, application, get_env, [mdns_server_lib, port]),
+    {IP, Port}.
 
+call(Node, Msg) -&gt;
+    {IP, Port} = node_endpoing(Node),
+    lager:debug("~s:~p &lt;- ~p", [IP, Port, Msg]),
+    {ok, Socket} = gen_tcp:connect(IP, Port, [binary, {active,false}, {packet,4}], 100),
+    ok = gen_tcp:send(Socket, term_to_binary(Msg)),
+    {ok, Repl} = gen_tcp:recv(Socket, 0),
+    {reply, Res} = binary_to_term(Repl),
+    lager:debug("~s:~p -&gt; ~p", [IP, Port, Res]),
+    gen_tcp:close(Socket),
+    Res.
+</code></pre>
 
 <p>There is some <code>gen_tcp</code> stuff in there but lets just ignore it for now it&rsquo;s detail not important, the first function is the more interesting one it uses the <code>rpc</code> module to execute the commands on the node we just started which is quite awesome.</p>
 
@@ -187,28 +166,17 @@
 
 <p>With <code>call/2</code> we&rsquo;ve now a way to send data directly to the node over the official API channel so lets add to our test. So lets get back to our <code>confirm/0</code> and add some real tests:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">confirm</span><span class="p">()</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">[</span><span class="nv">Node</span><span class="p">]</span> <span class="o">=</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">deploy_nodes</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span> <span class="nn">rt</span><span class="p">:</span><span class="nf">wait_until_nodes_ready</span><span class="p">([</span><span class="nv">Node</span><span class="p">])),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">({</span><span class="n">ok</span><span class="p">,[]},</span>
-</span><span class='line'>                 <span class="nn">rt_sniffle</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="p">{</span><span class="n">vm</span><span class="p">,</span> <span class="n">list</span><span class="p">})),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span>
-</span><span class='line'>                 <span class="nn">rt_sniffle</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="p">{</span><span class="n">vm</span><span class="p">,</span> <span class="nb">register</span><span class="p">,</span> <span class="o">&lt;&lt;</span><span class="s">&quot;vmid&quot;</span><span class="o">&gt;&gt;</span><span class="p">,</span> <span class="o">&lt;&lt;</span><span class="s">&quot;hypervisor&quot;</span><span class="o">&gt;&gt;</span><span class="p">})),</span>
-</span><span class='line'>    <span class="o">?</span><span class="n">assertEqual</span><span class="p">({</span><span class="n">ok</span><span class="p">,[</span><span class="o">&lt;&lt;</span><span class="s">&quot;vmid&quot;</span><span class="o">&gt;&gt;</span><span class="p">]},</span>
-</span><span class='line'>                 <span class="nn">rt_sniffle</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="nv">Node</span><span class="p">,</span> <span class="p">{</span><span class="n">vm</span><span class="p">,</span> <span class="n">list</span><span class="p">})),</span>
-</span><span class='line'>    <span class="n">pass</span><span class="p">.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">confirm() -&gt;
+    [Node] = rt:deploy_nodes(1),
+    ?assertEqual(ok, rt:wait_until_nodes_ready([Node])),
+    ?assertEqual({ok,[]},
+                 rt_sniffle:call(Node, {vm, list})),
+    ?assertEqual(ok,
+                 rt_sniffle:call(Node, {vm, register, &lt;&lt;"vmid"&gt;&gt;, &lt;&lt;"hypervisor"&gt;&gt;})),
+    ?assertEqual({ok,[&lt;&lt;"vmid"&gt;&gt;]},
+                 rt_sniffle:call(Node, {vm, list})),                 
+    pass.
+</code></pre>
 
 <p>It&rsquo;s as easy as this, this test will</p>
 
@@ -226,21 +194,19 @@
   <footer>
     <p class="meta">
       
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2013-04-09T23:33:00+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>11:33 pm</span></time>
+
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/erlang/'>erlang</a>, <a class='category' href='/blog/categories/project-fifo/'>project-fifo</a>, <a class='category' href='/blog/categories/riak/'>riak</a>, <a class='category' href='/blog/categories/riak-test/'>riak_test</a>
+    ErlangProject-FiForiakriak_test
   
 </span>
 
@@ -282,6 +248,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
       </li>
     
@@ -297,17 +267,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -344,7 +310,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

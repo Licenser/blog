@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -89,7 +89,7 @@
 
 
 
-<time class='entry-date' datetime='2013-04-23T14:47:00+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>2:47 pm</span></time>
+
         
       </p>
     
@@ -129,16 +129,11 @@
 
 <p>Before we can begin we&rsquo;ve to set up a few things, I&rsquo;ll not go into detail how to set up FiFo, there is a [good manual] for that with only like 5 steps required. So lets start at some of the script&rsquo;s variables:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#/usr/bin/env bash</span>
-</span><span class='line'><span class="nv">PACKAGE</span><span class="o">=</span><span class="s2">&quot;small&quot;</span>
-</span><span class='line'><span class="nv">DATASET</span><span class="o">=</span><span class="s2">&quot;base64-1.9.1&quot;</span>
-</span><span class='line'><span class="nv">NET</span><span class="o">=</span><span class="s2">&quot;7df94bc3-6a9f-4c88-8f80-7a8f4086b79d&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">#/usr/bin/env bash
+PACKAGE="small"
+DATASET="base64-1.9.1"
+NET="7df94bc3-6a9f-4c88-8f80-7a8f4086b79d"
+</code></pre>
 
 <ul>
 <li><code>smal</code> is the name of the package created in FiFo, I picked something with 512MB of memory since that should be enough for now.</li>
@@ -147,169 +142,98 @@
 </ul>
 
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>schroedinger:fifopy heinz <span class="o">[</span>master<span class="o">]</span> <span class="nv">$ </span>fifo packages list
-</span><span class='line'>                                UUID Name       RAM        CPU cap    Quota
-</span><span class='line'>------------------------------------ ---------- ---------- ---------- ----------
-</span><span class='line'>5f9f6c41-d700-4b4f-80f1-7350a71ed2e6 small      512 MB     100%       10 GB
-</span><span class='line'>schroedinger:fifopy heinz <span class="o">[</span>master<span class="o">]</span> <span class="nv">$ </span>fifo networks list
-</span><span class='line'>                                UUID Name       Tag                  First            Last
-</span><span class='line'>------------------------------------ ---------- ---------- --------------- ---------------
-</span><span class='line'>7df94bc3-6a9f-4c88-8f80-7a8f4086b79d <span class="nb">test       </span>admin        192.168.0.210   192.168.0.220
-</span><span class='line'>schroedinger:fifopy heinz <span class="o">[</span>master<span class="o">]</span> <span class="nv">$ </span>fifo datasets list
-</span><span class='line'>                                UUID Name       Version Type  Description
-</span><span class='line'>------------------------------------ ---------- ------- ----- ----------
-</span><span class='line'>60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4 base       1.9.1   zone  A SmartOS ...
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">schroedinger:fifopy heinz [master] $ fifo packages list
+                                UUID Name       RAM        CPU cap    Quota
+------------------------------------ ---------- ---------- ---------- ----------
+5f9f6c41-d700-4b4f-80f1-7350a71ed2e6 small      512 MB     100%       10 GB
+schroedinger:fifopy heinz [master] $ fifo networks list
+                                UUID Name       Tag                  First            Last
+------------------------------------ ---------- ---------- --------------- ---------------
+7df94bc3-6a9f-4c88-8f80-7a8f4086b79d test       admin        192.168.0.210   192.168.0.220
+schroedinger:fifopy heinz [master] $ fifo datasets list
+                                UUID Name       Version Type  Description
+------------------------------------ ---------- ------- ----- ----------
+60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4 base       1.9.1   zone  A SmartOS ...
+</code></pre>
 
 <h3>Creating a VM with riak installed</h3>
 
 <p>Creating a VM is rather simple we need a little JSON and pipe it to fifo with a cat. Please note the section reading <code>user-script</code> here we make the setup. Here is how it looks.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>cat <span class="s">&lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET</span>
-</span><span class='line'><span class="s">{</span>
-</span><span class='line'><span class="s">  &quot;alias&quot;: &quot;riak1&quot;,</span>
-</span><span class='line'><span class="s">  &quot;networks&quot;: {&quot;net0&quot;: &quot;$NET&quot;},</span>
-</span><span class='line'><span class="s">  &quot;metadata&quot;: {&quot;user-script&quot;: &quot;/opt/local/bin/sed -i.bak \\&quot;s/pkgsrc/pkgsrc-eu-ams/\\&quot; /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk &#39;{print \$2}&#39;\`; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/vm.args; svcadm enable epmd riak&quot;}</span>
-</span><span class='line'><span class="s">}</span>
-</span><span class='line'><span class="s">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash">cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
+{
+  "alias": "riak1",
+  "networks": {"net0": "$NET"},
+  "metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak"}
+}
+EOF
+</code></pre>
 
 <p>To get a bit better look user script section and remove the escape things:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># We configure pkgin to use the european mirror you might not need to do that.</span>
-</span><span class='line'>/opt/local/bin/sed -i.bak <span class="s2">&quot;s/pkgsrc/pkgsrc-eu-ams/&quot;</span> /opt/local/etc/pkgin/repositories.conf;
-</span><span class='line'><span class="c"># We update the pkgin database and install riak</span>
-</span><span class='line'>/opt/local/bin/pkgin update;
-</span><span class='line'>/opt/local/bin/pkgin -y install riak;
-</span><span class='line'><span class="c"># We find out what IP our VM has from within the VM.</span>
-</span><span class='line'><span class="nb">export </span><span class="nv">IP</span><span class="o">=</span><span class="sb">`</span>ifconfig net0 | head -n 2 | tail -n 1 | awk <span class="s1">&#39;{print $2}&#39;</span><span class="sb">`</span>;
-</span><span class='line'><span class="c"># We update the app.config and vm.args to use the &#39;public&#39; ip instead of the 127.0.0.1</span>
-</span><span class='line'>/opt/local/bin/sed -i.bak <span class="s2">&quot;s/127.0.0.1/$IP/&quot;</span> /opt/local/etc/riak/app.config;
-</span><span class='line'>/opt/local/bin/sed -i.bak <span class="s2">&quot;s/127.0.0.1/$IP/&quot;</span> /opt/local/etc/riak/vm.args;
-</span><span class='line'><span class="c"># Start epmd and riak</span>
-</span><span class='line'>svcadm <span class="nb">enable </span>epmd riak
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash"># We configure pkgin to use the european mirror you might not need to do that.
+/opt/local/bin/sed -i.bak "s/pkgsrc/pkgsrc-eu-ams/" /opt/local/etc/pkgin/repositories.conf;
+# We update the pkgin database and install riak
+/opt/local/bin/pkgin update;
+/opt/local/bin/pkgin -y install riak;
+# We find out what IP our VM has from within the VM.
+export IP=`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print $2}'`;
+# We update the app.config and vm.args to use the 'public' ip instead of the 127.0.0.1
+/opt/local/bin/sed -i.bak "s/127.0.0.1/$IP/" /opt/local/etc/riak/app.config;
+/opt/local/bin/sed -i.bak "s/127.0.0.1/$IP/" /opt/local/etc/riak/vm.args;
+# Start epmd and riak
+svcadm enable epmd riak
+</code></pre>
 
 <h3>Waiting for riak</h3>
 
 <p>Now that is the first zone set up next we&rsquo;ll want to wait for riak to properly start up. This is needed since the commands are asynchronous and installing the packages can be a tad slow. But we can just to curl the http interface to check for this, so it&rsquo;s rather simple:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># We&#39;ll ask fifo for the IP of our first zone.</span>
-</span><span class='line'><span class="nv">IP1</span><span class="o">=</span><span class="sb">`</span>fifo vms get riak1 | json networks<span class="o">[</span>0<span class="o">]</span>.ip<span class="sb">`</span>
-</span><span class='line'><span class="c"># Print some info so waiting is not so boring</span>
-</span><span class='line'><span class="nb">echo</span> -n <span class="s1">&#39;Waiting until riak is up and running on the primary node.&#39;</span>
-</span><span class='line'><span class="c"># now we curl the http interface every second to see if things are good.</span>
-</span><span class='line'><span class="k">until </span>curl http://<span class="k">${</span><span class="nv">IP1</span><span class="k">}</span>:8098 2&gt;/dev/null &gt;/dev/null
-</span><span class='line'><span class="k">do</span>
-</span><span class='line'><span class="k">  </span>sleep 1
-</span><span class='line'>  <span class="nb">echo</span> -n <span class="s1">&#39;.&#39;</span>
-</span><span class='line'><span class="k">done</span>
-</span><span class='line'><span class="c"># and we&#39;re done!</span>
-</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; done.&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="bash"># We'll ask fifo for the IP of our first zone.
+IP1=`fifo vms get riak1 | json networks[0].ip`
+# Print some info so waiting is not so boring
+echo -n 'Waiting until riak is up and running on the primary node.'
+# now we curl the http interface every second to see if things are good.
+until curl http://${IP1}:8098 2&gt;/dev/null &gt;/dev/null
+do
+    sleep 1
+    echo -n '.'
+done
+# and we're done!
+echo " done."
+</code></pre>
 
 <h3>Setting up the remaining zones</h3>
 
 <p>We&rsquo;re not going to get into too much details with this since it is pretty much working the same as the first VM with the only difference that the user-script holds two more lines:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">for </span>i in 2 3 4 5
-</span><span class='line'><span class="k">do</span>
-</span><span class='line'><span class="k">  </span>cat <span class="s">&lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET</span>
-</span><span class='line'><span class="s">  {</span>
-</span><span class='line'><span class="s">    &quot;alias&quot;: &quot;riak${i}&quot;,</span>
-</span><span class='line'><span class="s">    &quot;networks&quot;: {&quot;net0&quot;: &quot;$NET&quot;},</span>
-</span><span class='line'><span class="s">    &quot;metadata&quot;: {&quot;user-script&quot;: &quot;/opt/local/bin/sed -i.bak \\&quot;s/pkgsrc/pkgsrc-eu-ams/\\&quot; /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk &#39;{print \$2}&#39;\`; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\&quot;s/127.0.0.1/\$IP/\\&quot; /opt/local/etc/riak/vm.args; svcadm enable epmd riak; sleep 10; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit&quot;}</span>
-</span><span class='line'><span class="s">  }</span>
-</span><span class='line'><span class="s">EOF</span>
-</span><span class='line'>  <span class="nv">IP</span><span class="o">=</span><span class="sb">`</span>fifo vms get riak<span class="nv">$i</span> | json networks<span class="o">[</span>0<span class="o">]</span>.ip<span class="sb">`</span>
-</span><span class='line'>  <span class="nb">echo</span> -n <span class="s2">&quot;Waiting untill riak is up and running on the node $i.&quot;</span>
-</span><span class='line'>  <span class="k">until </span>curl http://<span class="k">${</span><span class="nv">IP</span><span class="k">}</span>:8098 2&gt;/dev/null &gt;/dev/null
-</span><span class='line'>  <span class="k">do</span>
-</span><span class='line'><span class="k">      </span>sleep 1
-</span><span class='line'>      <span class="nb">echo</span> -n <span class="s1">&#39;.&#39;</span>
-</span><span class='line'>  <span class="k">done</span>
-</span><span class='line'><span class="k">  </span><span class="nb">echo</span> <span class="s2">&quot; done.&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">done</span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="bash">for i in 2 3 4 5
+do
+    cat &lt;&lt;EOF | fifo vms create -p $PACKAGE -d $DATASET
+  {
+    "alias": "riak${i}",
+    "networks": {"net0": "$NET"},
+    "metadata": {"user-script": "/opt/local/bin/sed -i.bak \\"s/pkgsrc/pkgsrc-eu-ams/\\" /opt/local/etc/pkgin/repositories.conf; /opt/local/bin/pkgin update; /opt/local/bin/pkgin -y install riak; export IP=\`ifconfig net0 | head -n 2 | tail -n 1 | awk '{print \$2}'\`; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/app.config; /opt/local/bin/sed -i.bak \\"s/127.0.0.1/\$IP/\\" /opt/local/etc/riak/vm.args; svcadm enable epmd riak; sleep 10; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan; /opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit"}
+  }
+EOF
+    IP=`fifo vms get riak$i | json networks[0].ip`
+    echo -n "Waiting untill riak is up and running on the node $i."
+    until curl http://${IP}:8098 2&gt;/dev/null &gt;/dev/null
+    do
+        sleep 1
+        echo -n '.'
+    done
+    echo " done."
 
+done
+</code></pre>
 
-<p>The two new lines are joining the node to the existing riak node which is quite easy, we can use $IP1 we generated in the first step too:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@<span class="k">${</span><span class="nv">IP1</span><span class="k">}</span>
-</span><span class='line'>/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan
-</span><span class='line'>/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The two new lines are joining the node to the existing riak node which is quite easy, we can use $IP1 we generated in the first step too:
+<code>bash
+/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster join riak@${IP1}
+/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster plan
+/opt/local/bin/sudo -uriak /opt/local/sbin/riak-admin cluster commit
+</code></p>
 
 <p>This is run that up and you&rsquo;ve a 5 node riak cluster, and it&rsquo;s quick at last if you&rsquo;re in the US and have a good connection to the package repository.</p>
 
@@ -320,21 +244,19 @@
   <footer>
     <p class="meta">
       
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2013-04-23T14:47:00+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>2:47 pm</span></time>
+
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/project-fifo/'>project-fifo</a>, <a class='category' href='/blog/categories/riak/'>riak</a>
+    Project-FiForiak
   
 </span>
 
@@ -376,6 +298,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
       </li>
     
@@ -391,17 +317,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -438,7 +360,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

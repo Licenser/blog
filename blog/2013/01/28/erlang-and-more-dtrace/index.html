@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -89,7 +89,7 @@
 
 
 
-<time class='entry-date' datetime='2013-01-28T18:33:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>6:33 pm</span></time>
+
         
       </p>
     
@@ -102,51 +102,33 @@
 
 <p><img src="/images/posts/2013-01-28-erlang-and-more-dtrace-1.png" alt="Erlang Call Heatmap" /></p>
 
-<p>The script used (also included in the repository):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">lquantize</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The script used (also included in the repository):
+<code>d
+erlang*:::global-function-entry
+{
+  self-&gt;funcall_entry_ts[copyinstr(arg1)] = vtimestamp;
+}
+erlang*:::function-return
+{
+  @time[copyinstr(arg1)] = lquantize((vtimestamp - self-&gt;funcall_entry_ts[copyinstr(arg1)] ) / 1000, 0, 63, 2);
+}
+</code></p>
 
 <p>Now that is already cool <strong>but</strong> there is more, in addition to there is a page now that allows to show list based queries (as count or sum) so for example it would be very easy to get a profiling of an Erlang program like this:</p>
 
 <p><img src="/images/posts/2013-01-28-erlang-and-more-dtrace-2.png" alt="Erlang Profiling" /></p>
 
-<p>The script used (also included in the repository):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">sum</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The script used (also included in the repository):
+<code>d
+erlang*:::global-function-entry
+{
+  self-&gt;funcall_entry_ts[copyinstr(arg1)] = vtimestamp;
+}
+erlang*:::function-return
+{
+  @time[copyinstr(arg1)] = sum((vtimestamp - self-&gt;funcall_entry_ts[copyinstr(arg1)] ) / 1000);
+}
+</code></p>
 
 <p>Cool thing is this profiling can be turned on and off in a live system and has a <strong>comparable low</strong> performance impact (less then 50% unless functions are hammering in my tests).</p>
 
@@ -159,21 +141,19 @@
   <footer>
     <p class="meta">
       
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2013-01-28T18:33:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>6:33 pm</span></time>
+
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/dtrace/'>dtrace</a>, <a class='category' href='/blog/categories/erlang/'>erlang</a>, <a class='category' href='/blog/categories/fifo/'>fifo</a>, <a class='category' href='/blog/categories/smartos/'>smartos</a>
+    ErlangDTraceSmartOSFiFo
   
 </span>
 
@@ -215,6 +195,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
       </li>
     
@@ -230,17 +214,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -277,7 +257,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

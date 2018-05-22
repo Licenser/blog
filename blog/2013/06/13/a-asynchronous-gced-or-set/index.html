@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -89,7 +89,7 @@
 
 
 
-<time class='entry-date' datetime='2013-06-13T11:09:00+02:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>11:09 am</span></time>
+
         
       </p>
     
@@ -110,51 +110,31 @@
 
 <h3>remove</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">remove</span><span class="p">(</span><span class="nv">Id</span><span class="p">,</span> <span class="nv">Element</span><span class="p">,</span> <span class="nv">ORSet</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes</span><span class="p">})</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="nv">CurrentExisting</span> <span class="o">=</span> <span class="p">[</span><span class="nv">Elem</span> <span class="p">||</span> <span class="nv">Elem</span> <span class="o">=</span> <span class="p">{_,</span> <span class="nv">E1</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="n">raw_value</span><span class="p">(</span><span class="nv">ORSet</span><span class="p">),</span>
-</span><span class='line'>                               <span class="nv">E1</span> <span class="o">=:=</span> <span class="nv">Element</span><span class="p">],</span>
-</span><span class='line'>    <span class="nv">Removes1</span> <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span><span class="p">(</span><span class="nv">R</span><span class="p">,</span> <span class="nv">Rs</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>                                   <span class="nn">rot</span><span class="p">:</span><span class="nf">add</span><span class="p">({</span><span class="nv">Id</span><span class="p">,</span> <span class="nv">R</span><span class="p">},</span> <span class="nv">Rs</span><span class="p">)</span>
-</span><span class='line'>                           <span class="k">end</span><span class="p">,</span> <span class="nv">Removes</span><span class="p">,</span> <span class="nv">CurrentExisting</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">ORSet</span><span class="nl">#vorsetg</span><span class="p">{</span><span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes1</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">remove(Id, Element, ORSet = #vorsetg{removes = Removes}) -&gt;
+    CurrentExisting = [Elem || Elem = {_, E1} &lt;- raw_value(ORSet),
+                               E1 =:= Element],
+    Removes1 = lists:foldl(fun(R, Rs) -&gt;
+                                   rot:add({Id, R}, Rs)
+                           end, Removes, CurrentExisting),
+    ORSet#vorsetg{removes = Removes1}.
+</code></pre>
 
 <p><code>Id</code> defaults to a the current time in nanoseconds since it&rsquo;s precise enough for most cases, but can be given any value that provides timed order. Line 2 and 3 collect all observed and not yet removed instances of the element to delete, we then fold over those instances and add each of them to the ROT.</p>
 
 <h3>GC</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">gc</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span>
-</span><span class='line'>   <span class="nl">#vorsetg</span><span class="p">{</span>
-</span><span class='line'>      <span class="n">adds</span> <span class="o">=</span> <span class="nv">Adds</span><span class="p">,</span>
-</span><span class='line'>      <span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes</span><span class="p">,</span>
-</span><span class='line'>      <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">})</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="p">{</span><span class="nv">Values</span><span class="p">,</span> <span class="nv">Removes1</span><span class="p">}</span> <span class="o">=</span> <span class="nn">rot</span><span class="p">:</span><span class="nf">remove</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span> <span class="nv">Removes</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">Values1</span> <span class="o">=</span> <span class="p">[</span><span class="nv">V</span> <span class="p">||</span> <span class="p">{_,</span> <span class="nv">V</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">Values</span><span class="p">],</span>
-</span><span class='line'>    <span class="nv">Values2</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">from_list</span><span class="p">(</span><span class="nv">Values1</span><span class="p">),</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">adds</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">subtract</span><span class="p">(</span><span class="nv">Adds</span><span class="p">,</span> <span class="nv">Values2</span><span class="p">),</span>
-</span><span class='line'>             <span class="n">gced</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">add_element</span><span class="p">(</span><span class="nv">HashID</span><span class="p">,</span> <span class="nv">GCed</span><span class="p">),</span>
-</span><span class='line'>             <span class="n">removes</span> <span class="o">=</span> <span class="nv">Removes1</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">gc(HashID,
+   #vorsetg{
+      adds = Adds,
+      removes = Removes,
+      gced = GCed}) -&gt;
+    {Values, Removes1} = rot:remove(HashID, Removes),
+    Values1 = [V || {_, V} &lt;- Values],
+    Values2 = ordsets:from_list(Values1),
+    #vorsetg{adds = ordsets:subtract(Adds, Values2),
+             gced = ordsets:add_element(HashID, GCed),
+             removes = Removes1}.
+</code></pre>
 
 <p>To GC the set we take the <code>HashID</code>, this is what the rot returns when it reports full buckets, and in line 6 remove it from the ROT. Thankfully the ROT will return the content of the deleted bucket, this comes in very handy, since in the process of garbage collecting the bucket we also need to remove the items once and for all from the add list as seen in line 9. We then record the GC action in line 10 to make sure it will applied during a merge.</p>
 
@@ -162,38 +142,22 @@
 
 <h3>merge</h3>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">merge</span><span class="p">(</span><span class="nv">ROTA</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">gced</span> <span class="o">=</span> <span class="nv">GCedA</span><span class="p">},</span>
-</span><span class='line'>      <span class="nv">ROTB</span> <span class="o">=</span> <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">gced</span> <span class="o">=</span> <span class="nv">GCedB</span><span class="p">})</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span>
-</span><span class='line'>       <span class="n">adds</span> <span class="o">=</span> <span class="nv">AddsA</span><span class="p">,</span>
-</span><span class='line'>       <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">,</span>
-</span><span class='line'>       <span class="n">removes</span> <span class="o">=</span> <span class="nv">RemovesA</span><span class="p">}</span>
-</span><span class='line'>        <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span> <span class="n">gc</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nv">ROTA</span><span class="p">,</span> <span class="nv">GCedB</span><span class="p">),</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span>
-</span><span class='line'>       <span class="n">adds</span> <span class="o">=</span> <span class="nv">AddsB</span><span class="p">,</span>
-</span><span class='line'>       <span class="n">removes</span> <span class="o">=</span> <span class="nv">RemovesB</span><span class="p">}</span>
-</span><span class='line'>        <span class="o">=</span> <span class="nn">lists</span><span class="p">:</span><span class="nf">foldl</span><span class="p">(</span><span class="k">fun</span> <span class="n">gc</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nv">ROTB</span><span class="p">,</span> <span class="nv">GCedA</span><span class="p">),</span>
-</span><span class='line'>    <span class="nv">ROT1</span> <span class="o">=</span> <span class="nn">rot</span><span class="p">:</span><span class="nf">merge</span><span class="p">(</span><span class="nv">RemovesA</span><span class="p">,</span> <span class="nv">RemovesB</span><span class="p">),</span>
-</span><span class='line'>    <span class="nl">#vorsetg</span><span class="p">{</span><span class="n">adds</span> <span class="o">=</span> <span class="nn">ordsets</span><span class="p">:</span><span class="nf">union</span><span class="p">(</span><span class="nv">AddsA</span><span class="p">,</span> <span class="nv">AddsB</span><span class="p">),</span>
-</span><span class='line'>             <span class="n">gced</span> <span class="o">=</span> <span class="nv">GCed</span><span class="p">,</span>
-</span><span class='line'>             <span class="n">removes</span> <span class="o">=</span> <span class="nv">ROT1</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">merge(ROTA = #vorsetg{gced = GCedA},
+      ROTB = #vorsetg{gced = GCedB}) -&gt;
+    #vorsetg{
+       adds = AddsA,
+       gced = GCed,
+       removes = RemovesA}
+        = lists:foldl(fun gc/2, ROTA, GCedB),
+    #vorsetg{
+       adds = AddsB,
+       removes = RemovesB}
+        = lists:foldl(fun gc/2, ROTB, GCedA),
+    ROT1 = rot:merge(RemovesA, RemovesB),
+    #vorsetg{adds = ordsets:union(AddsA, AddsB),
+             gced = GCed,
+             removes = ROT1}.
+</code></pre>
 
 <p>Merging gets a bit more complicated due to the fact that we now have to take into account that values might be garbage collected in one set but not in the other. While merging them would do no harm it would recreate the garbage which isn&rsquo;t too nice. So what we do is applying the recorded GC actions to both sets first as seen in line 3 to 11 and then merge the remove values (line 12) finally the add values (line 13).</p>
 
@@ -211,18 +175,12 @@
 
 <p>Measured were both the space reduction per GC run and the final difference of size. Per GC run about 15% space was reclaimed and at the end the GCed set had a total space consumption of around 26% of the normal OR Set in average, 6% in the best and 143% in the worst case.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span><span class="nv">Size</span><span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>   <span class="nv">Avg</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">261</span><span class="p">,</span>  <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">062</span><span class="p">,</span> <span class="nv">Max</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">507</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">RS</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">49221</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">866</span><span class="p">,</span>  <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">.</span><span class="mi">064</span><span class="p">,</span> <span class="nv">Max</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">GC</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">49221</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">55</span><span class="p">.</span><span class="mi">870</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6483</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">MG</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">98357</span><span class="p">,</span>  <span class="nv">Avg</span><span class="p">:</span> <span class="mi">58</span><span class="p">.</span><span class="mi">110</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6596</span>
-</span><span class='line'><span class="n">src</span><span class="o">/</span><span class="n">vorsetg</span><span class="p">.</span><span class="nn">erl</span><span class="p">:</span><span class="mi">389</span><span class="p">:</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">135</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="p">[</span> <span class="nv">OP</span> <span class="p">]</span> <span class="nv">Cnt</span><span class="p">:</span> <span class="mi">344708</span><span class="p">,</span> <span class="nv">Avg</span><span class="p">:</span> <span class="mi">38</span><span class="p">.</span><span class="mi">539</span><span class="p">,</span> <span class="nv">Min</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>     <span class="nv">Max</span><span class="p">:</span> <span class="mi">6916</span><span class="err">```</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code>src/vorsetg.erl:389:&lt;0.135.0&gt;: [Size] Cnt: 1000,   Avg: 0.261,  Min: 0.062, Max: 1.507
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ RS ] Cnt: 49221,  Avg: 0.866,  Min: 0.064, Max: 1.0
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ GC ] Cnt: 49221,  Avg: 55.870, Min: 0,     Max: 6483
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ MG ] Cnt: 98357,  Avg: 58.110, Min: 0,     Max: 6596
+src/vorsetg.erl:389:&lt;0.135.0&gt;: [ OP ] Cnt: 344708, Avg: 38.539, Min: 0,     Max: 6916```
+</code></pre>
 
 <p>The numbers are from a test run, for readability truncated manually after 3 digest and aligned to be nicer readable. <strong>Size</strong> is total size at the end of the iteration, <strong>RS</strong> is the space reduction per GC run. <strong>GC</strong>, <strong>MG</strong> and <strong>OP</strong> are the time used for garbage collection, merging and other operations respectively, the numbers are per execution and measured microseconds. Time measurements also include noise that from additional operations required for the test and should not be seen as a useful benchmark!</p>
 
@@ -239,21 +197,19 @@
   <footer>
     <p class="meta">
       
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Heinz N. &#8216;Licenser&#8217; Gies</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Heinz N. 'Licenser' Gies</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2013-06-13T11:09:00+02:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>11:09 am</span></time>
+
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/crtd/'>crtd</a>, <a class='category' href='/blog/categories/erlang/'>erlang</a>, <a class='category' href='/blog/categories/riak/'>riak</a>, <a class='category' href='/blog/categories/riak-test/'>riak_test</a>
+    Erlangriakriak_testCRTD
   
 </span>
 
@@ -295,6 +251,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
       </li>
     
@@ -310,17 +270,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -357,7 +313,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

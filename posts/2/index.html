@@ -9,7 +9,7 @@
   <meta name="author" content="Heinz N. 'Licenser' Gies">
 
   
-  <meta name="description" content="Preamble Lets start with this, Erlang releases are super useful they are one of the features I like most about Erlang - you get out an entirely self &hellip;">
+  <meta name="description" content="If you don&rsquo;t know what riak_core is, or don&rsquo;t have a riak_core based application you&rsquo;ll probably not take too much practical use of &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -50,7 +50,7 @@
   <header role="banner"><hgroup>
   <h1><a href="/">Lice!</a></h1>
   
-    <h2>&#8230;</h2>
+    <h2>...</h2>
   
 </hgroup>
 
@@ -83,6 +83,278 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/03/31/getting-started-with-riak-test-and-riak-core/">Getting Started With Riak_test and Riak_core</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>If you don&rsquo;t know what <code>riak_core</code> is, or don&rsquo;t have a <code>riak_core</code> based application you&rsquo;ll probably not take too much practical use of this posts you might want to start with <a href="https://github.com/rzezeski/try-try-try">Ryan Zezeski&rsquo;s &ldquo;working&rdquo; blog try try try</a> and the <a href="https://github.com/basho/rebar_riak_core">rebar plugin</a>.</p>
+
+<p>That said if you have a <code>riak_core</code> app this posts should get you started on how to test it with <code>riak_test</code>. We&rsquo;ll not go through the topic of how to write the tests itself, this might come in a later post also the <code>riak_kv</code> tests are a good point to start.</p>
+
+<p>Please note that the approach described here is what I choose to do, it might not be best practice of the best way for you to do things. I also will link to <a href="https://github.com/Licenser/riak_test">my fork</a> of <code>riak_test</code> instead of the <a href="https://github.com/basho/riak_test">official one</a> since it includes some modifications required for testing apps other then <code>riak_kv</code> I hope those modifications will be merged back at some point but for now I want to get it ironed out a bit more before making a pull request.</p>
+
+<h2>What is riak_test?</h2>
+
+<p>So before we start a few words to <code>riak_test</code>. <code>riak_test</code> is a pretty nice framework for testing distributed applications, it is, just as about all other <code>riak_</code> stuff created by <a href="http://basho.com">Basho</a> and it is pretty darn awesome.</p>
+
+<p>At it&rsquo;s current state it is very focused on testing <code>riak_kv</code> (or <code>riak</code> as in the database) but from a first glance a lot of functionality is very universal and after all <code>riak_core</code> is also build on top of <code>riak_core</code>, so modifying it to run with other <code>riak_core</code> based apps is pretty easy.</p>
+
+<h2>The setup</h2>
+
+<p>Since I will be testing multiple <code>riak_core</code> apps and not just one I decided to go the following path: Have the entire setup in a git repository, then have one branch for general fixes/changed to <code>riak_core</code> then have one branch for each application I want to test that is based on the general branch so common changes can easily be merged so it will look like this:</p>
+
+<pre><code>---riak_test--------- (bashos master tree)
+   `---riak_core----- (modifications to make riak_test work with core apps)
+    ` `  `---sniffle- (tests for sniffle)
+     ` `---snarl----- (tests for snarl)
+      `---howl------- (tests for howl)
+</code></pre>
+
+<p>We&rsquo;ll go over this and setting up tests for the <a href="https://github.com/project-fifo/howl">howl application</a> it&rsquo;s rather small and simple and it&rsquo;s easier to follow along with something real instead of a made up situation.</p>
+
+<h2>Getting started</h2>
+
+<p>Step one of getting started is to get a clone from the <code>riak_test</code> repository, that&rsquo;s pretty simple (alter the path if you decided to fork):</p>
+
+<pre><code>cd ~/Projects
+git clone https://github.com/Licenser/riak_test.git
+cd riak_test
+</code></pre>
+
+<p>Now we branch of to have a place to get our howl application but first we need to checkout the riak_core branch to make sure we get the changes included in it:</p>
+
+<pre><code>git checkout riak_core
+git branch howl
+git checkout howl
+</code></pre>
+
+<p>Okay that&rsquo;s it for the basic setup not that bad so far is it?</p>
+
+<h2>Configuration</h2>
+
+<p>Next thing we need to do is creating a configuration, at this point we assume you don&rsquo;t have any yet so we&rsquo;ll start from scratch, if you add more then one application later on you can just add them to an existing configuration.</p>
+
+<p><code>riak_test</code> looks for the configuration file <code>~/.riak_test.config</code> and reads all the data from there so we&rsquo;ll first need to copy the sample config there:</p>
+
+<pre><code>cp riak_test.config.sample ~/.riak_test.config
+</code></pre>
+
+<p>Next step is to open it in your favourite editor, you&rsquo;ll recognise it&rsquo;s a good old Erlang config file with tuples to group sections. We&rsquo;ll be ignoring the <code>default</code> section for now, if you&rsquo;re interested in it the documentation is quite good!</p>
+
+<p>So lets go down to where it reads:</p>
+
+<pre><code class="erlang">%% ===============================================================
+%%  Project-specific configurations
+%% ===============================================================
+</code></pre>
+
+<p>Here is where the fun starts, you&rsquo;ll see a tuple starting with <code>{rtdev,</code> - note this <code>rtdev</code> has nothing whatsoever to do with the <code>rtdev</code> that is in the <code>default</code> section as <code>{rt_harness, rtdev}</code>. The <code>rtdev</code> in the project part is just the name of the project, since your project is named <code>howl</code> not <code>rtdev</code> we&rsquo;ll go and change that first.</p>
+
+<pre><code class="erlang">{rtdev, [
+</code></pre>
+
+<p>Now we can go to set up some variables first up the project name and executables, the name itself is just for information (or if you use <code>giddyup</code>) the executables are how your application is started, since our application is named <code>howl</code> it&rsquo;s started with the command <code>howl</code> and the admin command for it is <code>howl-admin</code>.</p>
+
+<pre><code class="erlang">    %% The name of the project/product, used when fetching the test
+    %% suite and reporting.
+    {rt_project, "howl"},
+
+    {rc_executable, "howl"},
+    {rc_admin, "howl-admin"},
+</code></pre>
+
+<p>With that done come the services, those are the buggers you register in your _app.erl file, lets have a look at the howl_app.erl:</p>
+
+<pre><code class="erlang">%...
+            ok = riak_core_node_watcher:service_up(howl, self()),
+%...
+</code></pre>
+
+<p>So we only have one service here we need to watch out for, named, you might guess … right <code>howl</code> that makes the list rather short:</p>
+
+<pre><code class="erlang">    {rc_services, [howl]},
+</code></pre>
+
+<p>Now the cookie, it&rsquo;s a bit hidden in the code that you need to set it but you do, you will need this later so remember it! Since I am bad at remembering things I named it … <code>howl</code> … again.</p>
+
+<pre><code class="erlang">    {rt_cookie, howl},
+</code></pre>
+
+<p>Now comes the setup of paths, for this we&rsquo;ve to decide where we want to put our data later on, I&rsquo;ve put all my <code>riak_test</code> things in <code>/Users/heinz/rt/...</code> so we&rsquo;ll follow with this. Also note that my development process works on three branches:</p>
+
+<ul>
+<li><code>test</code> - the most unstable branch.</li>
+<li><code>dev</code> - here things go that should work.</li>
+<li><code>master</code> - only full releases go in here.</li>
+</ul>
+
+
+<p>This setup might not work for you at all, but since it are only path names it should be easy enough to adept the.</p>
+
+<p>Note that by default <code>riak_test</code> will run tests on the <code>current</code> environment</p>
+
+<pre><code class="erlang">    %% Paths to the locations of various versions of the project. This
+    %% is only valid for the `rtdev' harness.
+    {rtdev_path, [
+                  %% This is the root of the built `rtdev' repository,
+                  %% used for manipulating the repo with git. All
+                  %% versions should be inside this directory.
+                  {root, "/Users/heinz/rt/howl"},
+
+                  %% The path to the `current' version, which is used
+                  %% exclusively except during upgrade tests.
+                  {current, "/Users/heinz/rt/howl/howl-test"},
+
+                  %% The path to the most immediately previous version
+                  %% of the project, which is used when doing upgrade
+                  %% tests.
+                  {previous, "/Users/heinz/rt/howl/howl-dev"},
+
+                  %% The path to the version before `previous', which
+                  %% is used when doing upgrade tests.
+                  {legacy, "/Users/heinz/rt/howl/howl-stable"}
+                 ]}
+]}
+</code></pre>
+
+<p>And that&rsquo;s it now the config is set up and should look like this:</p>
+
+<pre><code class="erlang">{rtdev, [
+    %% The name of the project/product, used when fetching the test
+    %% suite and reporting.
+    {rt_project, "howl"},
+
+    {rc_executable, "rhowl"},
+    {rc_admin, "howl-admin"},
+    {rc_services, [howl]},
+    {rt_cookie, howl},
+    %% Paths to the locations of various versions of the project. This
+    %% is only valid for the `rtdev' harness.
+    {rtdev_path, [
+                  %% This is the root of the built `rtdev' repository,
+                  %% used for manipulating the repo with git. All
+                  %% versions should be inside this directory.
+                  {root, "/Users/heinz/rt/howl"},
+
+                  %% The path to the `current' version, which is used
+                  %% exclusively except during upgrade tests.
+                  {current, "/Users/heinz/rt/howl/howl-test"},
+
+                  %% The path to the most immediately previous version
+                  %% of the project, which is used when doing upgrade
+                  %% tests.
+                  {previous, "/Users/heinz/rt/howl/howl-dev"},
+
+                  %% The path to the version before `previous', which
+                  %% is used when doing upgrade tests.
+                  {legacy, "/Users/heinz/rt/howl/howl-stable"}
+                 ]}
+]}
+</code></pre>
+
+<h2>Setting up the application</h2>
+
+<p>We&rsquo;ve <code>riak_test</code> ready to test now next we need to prepare howl to be tested, we&rsquo;ll only look at the <code>current</code> (aka <code>test</code>) setup since the steps for others are pretty much the same.</p>
+
+<p>The first step is that we need the folder, so lets create it</p>
+
+<pre><code>mkdir -p /Users/heinz/rt/raw/howl
+cd /Users/heinz/rt/raw/howl
+</code></pre>
+
+<p>Since howl lives with the octocat on github it&rsquo;s easy to fetch our application and checkout the test branch (remember <code>current</code> is on the test branch for me):</p>
+
+<pre><code>git clone https://github.com/project-fifo/howl.git howl-test
+cd howl-test
+git checkout test
+</code></pre>
+
+<p>And done, now since it&rsquo;s a <code>riak_core</code> app we should have a task called <code>stagedevrel</code> in our makefile which will basically generate three copies of <code>howl</code> for us in the folders <code>dev/dev{1,2,3}</code> and in the process take care of compiling and getting the dependencies. I prefer <code>stagedevrel</code> over the normal <code>devrel</code> since later on it will it easier to recompile code files (<code>make</code> is enough) because it links them to the right place instead of copying the.</p>
+
+<pre><code>make stagedevrel
+</code></pre>
+
+<p>Now we&rsquo;ve to do a bit of a cheating, riak_text expects the root dir to be a git repository, that is why we can&rsquo;t just put the data in there directly, so we&rsquo;ve to manually build the tree for riak core and set up as git repositor.</p>
+
+<pre><code>mkdir -p /Users/heinz/rt/howl
+cd /Users/heinz/rt/howl
+git init
+
+cat &lt;&lt;EOF &gt; /Users/heinz/rt/howl/.gitignore
+*/dev/*/bin
+*/dev/*/erts-*
+*/dev/*/lib
+*/dev/*/releases
+EOF
+</code></pre>
+
+<p>Now we need to link our devrel files and for my setup I&rsquo;ve to copy the <code>*.example</code> files of the <code>app.config</code> and <code>vm.args</code> into the right place they might be named differently for you.</p>
+
+<pre><code>export RT_BASE=/Users/heinz/rt/howl/howl-test
+export RC_BASE=/Users/heinz/rt/raw/howl/howl-test
+for i in 1 2 3 4
+do
+  mkdir -p ${RT_BASE}/dev/dev${i}/
+  cd ${RT_BASE}/dev/dev${i}/
+  mkdir data etc
+  touch data/.gitignore
+  ln -s ${RC_BASE}/dev/dev${i}/{bin,erts-*,lib,releases} .
+  cp ${RC_BASE}/dev/dev${i}/etc/vm.args.example etc/vm.args
+  cp ${RC_BASE}/dev/dev${i}/etc/app.config.example etc/app.config
+done
+</code></pre>
+
+<p>We still need to edit the <code>vm.args</code> in <code>dev/dev{1,2,3,4}/etc/</code>  since we need to set the correct cookie - I hope you still remember yours, I told you you&rsquo;d need it (if not you can just look in the <code>~/.riak_test.config</code>)!</p>
+
+<p>That&rsquo;s it.</p>
+
+<h2>Running a first test</h2>
+
+<p>In the <code>riak_core</code> branch of <code>riak_test</code> I&rsquo;ve moved all the <code>riak_kv</code> specific tests from <code>tests</code> to <code>tests_riakkv</code> so you still can look at them but I left one of them in <code>tests</code>, namely the basic command test - it will check if your applications command (<code>howl</code> in our case) is well behaved.</p>
+
+<p>We&rsquo;ll want to run it to see if <code>howl</code> is a good boy and does well to do so we&rsquo;ll need to get back into the <code>riak_test</code> folder and run the <code>riak_test</code> command:</p>
+
+<pre><code>cd ~/Projects/riak_test
+./riak_test -t tests/* -c howl -v -b none
+</code></pre>
+
+<p>I&rsquo;d like to explain this a bit, the arguments have the following meaning:</p>
+
+<ul>
+<li><code>-t tests/*</code> - we&rsquo;ll be running all tests in the folder <code>tests/</code>.</li>
+<li><code>-c howl</code> - our application we want to test is named howl, this is the first element of the tuple we put in our config file when you remember.</li>
+<li><code>-v</code> - This just turns on verbose output.</li>
+<li><code>-b none</code> - This is still a relict from the <code>riak_kv</code> roots, it means which backend to test with, since we don&rsquo;t have backends at all we&rsquo;ll just pass none which means riak_test will happily ignore it.</li>
+</ul>
+
+
+<p>That&rsquo;s it! Now go and test all the things!</p>
+
+<p>This is the first part of a series that goes on <a href="/blog/2013/04/09/writing-your-first-riak-test-test-yes-i-know-there-are-two-tests-there/">here</a>.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/03/19/plugins-with-erlang/">Plugins With Erlang</a></h1>
     
     
@@ -92,7 +364,7 @@
 
 
 
-<time class='entry-date' datetime='2013-03-19T16:45:00+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>4:45 pm</span></time>
+
         
       </p>
     
@@ -125,40 +397,23 @@
 
 <p>Sometimes a plugin just want to know that something happened but don&rsquo;t care about the result. <code>eplugin</code> provides the <code>call</code> (and <code>apply</code>) functions for that. A logger is a good example for this so lets have a look:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">syslog_plugin</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">syslog_plugin</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% syslog_plugin.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">syslog_plugin</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">log</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">log</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">os</span><span class="p">:</span><span class="nf">cmd</span><span class="p">(</span><span class="s">&quot;logger &#39;&quot;</span> <span class="o">++</span> <span class="nv">String</span> <span class="o">++</span> <span class="s">&quot;&#39;&quot;</span><span class="p">).</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="nn">eplugin</span><span class="p">:</span><span class="nf">call</span><span class="p">(</span><span class="n">&#39;some:event&#39;</span><span class="p">,</span> <span class="s">&quot;logging this!&quot;</span><span class="p">),</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">%%% plugin.conf
+{syslog_plugin,
+  [{syslog_plugin, [{'some:event', log}]}],
+  []}.
 
+%%% syslog_plugin.erl
+-module(syslog_plugin).
+-export([log/1]).
+
+log(String) -&gt;
+  os:cmd("logger '" ++ String ++ "'").
+
+%%% in your code
+  %%... 
+  eplugin:call('some:event', "logging this!"),
+  %%... 
+</code></pre>
 
 <p>Thats pretty much it, provided you&rsquo;ve started the <code>eplugin</code> application in your code and put the plugins in the right place this will just work. You could also use this to trigger side effects, like delete all files when an error occurs to remove traces of your failure.</p>
 
@@ -166,38 +421,22 @@
 
 <p>This kind of plugins process some data and return a new version of this data, we have <code>fold</code> for this case. Fold since it internally uses fold to pass the data from one plugin to another. there are many applications for that one would be to replace all occurrences of &lsquo;not js&rsquo; with &lsquo;node.js&rsquo; to prevent freudian typos in your texts.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">not_js</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">not_js</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="n">replace</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% not_js.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">not_js</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">replace</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">re</span><span class="p">:</span><span class="nf">replace</span><span class="p">(</span><span class="nv">String</span><span class="p">,</span> <span class="s">&quot;not js&quot;</span><span class="p">,</span> <span class="s">&quot;node.js&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">global</span><span class="p">]).</span>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="nv">String1</span> <span class="o">=</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">fold</span><span class="p">(</span><span class="n">&#39;text:check&#39;</span><span class="p">,</span> <span class="s">&quot;I&#39;m writing a not js application!&quot;</span><span class="p">),</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">%%% plugin.conf
+{not_js,
+  [{not_js, [{'text:check', replace}]}],
+  []}.
 
+%%% not_js.erl
+-module(not_js).
+-export([replace/1]).
+
+replace(String) -&gt;
+  re:replace(String, "not js", "node.js", [global]).
+%%% in your code
+  %%... 
+  String1 = eplugin:fold('text:check', "I'm writing a not js application!"),
+  %%... 
+</code></pre>
 
 <p><code>fold</code> and <code>call</code> are the most interesting and important kind of plugins, they cover most if not all of the possible use cases of plugins so there is a special case left which I found useful to have.</p>
 
@@ -205,50 +444,28 @@
 
 <p>Checking plugins are plugins which are supposed to decide if something is Ok or not, they are pretty much a case of <code>fold</code> that returns true or false (or actually whatever is not true). But <code>eplugin</code> solves this too, with the <code>test</code> function! An example here is authentication</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%%% plugin.conf</span>
-</span><span class='line'><span class="p">{</span><span class="n">get_out</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">[{</span><span class="n">get_out</span><span class="p">,</span> <span class="p">[{</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="n">no_really_not</span><span class="p">}]}],</span>
-</span><span class='line'>  <span class="p">[]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% get_out.erl</span>
-</span><span class='line'><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">get_out</span><span class="p">).</span>
-</span><span class='line'><span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">no_really_not</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">no_really_not</span><span class="p">(</span><span class="nv">Login</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="p">{</span><span class="n">forbidden</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;Dear &quot;</span><span class="p">,</span> <span class="nv">Login</span><span class="p">,</span> <span class="s">&quot; we don&#39;t want you here go away!&quot;</span><span class="p">]}.</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">%%% in your code</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span><span class='line'>  <span class="k">case</span> <span class="nn">eplugin</span><span class="p">:</span><span class="nf">test</span><span class="p">(</span><span class="n">&#39;login:allowed&#39;</span><span class="p">,</span> <span class="s">&quot;Licenser&quot;</span><span class="p">)</span> <span class="k">of</span>
-</span><span class='line'>     <span class="n">true</span> <span class="o">-&gt;</span>
-</span><span class='line'>      <span class="c">%%% huzza!</span>
-</span><span class='line'>     <span class="nv">Error</span> <span class="o">-&gt;</span>
-</span><span class='line'>      <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">~p~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Error</span><span class="p">])</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>  <span class="c">%%... </span>
-</span></code></pre></td></tr></table></div></figure>
+<pre><code class="erlang">%%% plugin.conf
+{get_out,
+  [{get_out, [{'login:allowed', no_really_not}]}],
+  []}.
 
+%%% get_out.erl
+-module(get_out).
+-export([no_really_not/1]).
+
+no_really_not(Login) -&gt;
+  {forbidden, ["Dear ", Login, " we don't want you here go away!"]}.
+
+%%% in your code
+  %%... 
+  case eplugin:test('login:allowed', "Licenser") of
+     true -&gt;
+        %%% huzza!
+     Error -&gt;
+        io:format("~p~n", [Error])
+  end
+  %%... 
+</code></pre>
 </div>
   
   
@@ -270,7 +487,7 @@
 
 
 
-<time class='entry-date' datetime='2013-01-31T01:30:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>1:30 am</span></time>
+
         
       </p>
     
@@ -327,7 +544,7 @@
 
 
 
-<time class='entry-date' datetime='2013-01-28T18:33:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>6:33 pm</span></time>
+
         
       </p>
     
@@ -340,51 +557,33 @@
 
 <p><img src="/images/posts/2013-01-28-erlang-and-more-dtrace-1.png" alt="Erlang Call Heatmap" /></p>
 
-<p>The script used (also included in the repository):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">lquantize</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The script used (also included in the repository):
+<code>d
+erlang*:::global-function-entry
+{
+  self-&gt;funcall_entry_ts[copyinstr(arg1)] = vtimestamp;
+}
+erlang*:::function-return
+{
+  @time[copyinstr(arg1)] = lquantize((vtimestamp - self-&gt;funcall_entry_ts[copyinstr(arg1)] ) / 1000, 0, 63, 2);
+}
+</code></p>
 
 <p>Now that is already cool <strong>but</strong> there is more, in addition to there is a page now that allows to show list based queries (as count or sum) so for example it would be very easy to get a profiling of an Erlang program like this:</p>
 
 <p><img src="/images/posts/2013-01-28-erlang-and-more-dtrace-2.png" alt="Erlang Profiling" /></p>
 
-<p>The script used (also included in the repository):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='d'><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="n">global</span><span class="p">-</span><span class="k">function</span><span class="p">-</span><span class="n">entry</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">vtimestamp</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">erlang</span><span class="p">*:::</span><span class="k">function</span><span class="p">-</span><span class="k">return</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">time</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">=</span> <span class="n">sum</span><span class="p">((</span><span class="n">vtimestamp</span> <span class="p">-</span> <span class="n">self</span><span class="p">-&gt;</span><span class="n">funcall_entry_ts</span><span class="p">[</span><span class="n">copyinstr</span><span class="p">(</span><span class="n">arg1</span><span class="p">)]</span> <span class="p">)</span> <span class="p">/</span> <span class="mi">1000</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>The script used (also included in the repository):
+<code>d
+erlang*:::global-function-entry
+{
+  self-&gt;funcall_entry_ts[copyinstr(arg1)] = vtimestamp;
+}
+erlang*:::function-return
+{
+  @time[copyinstr(arg1)] = sum((vtimestamp - self-&gt;funcall_entry_ts[copyinstr(arg1)] ) / 1000);
+}
+</code></p>
 
 <p>Cool thing is this profiling can be turned on and off in a live system and has a <strong>comparable low</strong> performance impact (less then 50% unless functions are hammering in my tests).</p>
 
@@ -412,7 +611,7 @@
 
 
 
-<time class='entry-date' datetime='2013-01-25T00:21:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:21 am</span></time>
+
         
       </p>
     
@@ -429,126 +628,78 @@
 
 <p>When connecting we set up a timer to inform us every second to gather the results from DTrace:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_init</span><span class="p">(_</span><span class="nv">Any</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">[])</span> <span class="o">-&gt;</span>
-</span><span class='line'>  <span class="nn">timer</span><span class="p">:</span><span class="nf">send_interval</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tick</span><span class="p">),</span>
-</span><span class='line'>  <span class="nv">Req2</span> <span class="o">=</span> <span class="nn">cowboy_http_req</span><span class="p">:</span><span class="nf">compact</span><span class="p">(</span><span class="nv">Req</span><span class="p">),</span>
-</span><span class='line'>  <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req2</span><span class="p">,</span> <span class="n">undefined</span><span class="p">,</span> <span class="n">hibernate</span><span class="p">}.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_init(_Any, Req, []) -&gt;
+    timer:send_interval(1000, tick),
+    Req2 = cowboy_http_req:compact(Req),
+    {ok, Req2, undefined, hibernate}.
+</code></pre>
 
 <p>Next up we handle incoming Websockets messages, this deals very simple. Every string that is send is considered a new dtrace script to execute.</p>
 
 <p>The first part creates a new handler, this is pretty much a reference to the libdtrace internal data structures. Since we allow multiple scripts to be send we also have to ensure that the old sockets are closed before new ones are opened.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_handle</span><span class="p">({</span><span class="n">text</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">},</span> <span class="nv">Req</span><span class="p">,</span> <span class="nv">State</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>    <span class="c">%% We create a new handler</span>
-</span><span class='line'>    <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}</span> <span class="o">=</span> <span class="k">case</span> <span class="nv">State</span> <span class="k">of</span>
-</span><span class='line'>                       <span class="n">undefined</span> <span class="o">-&gt;</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">();</span>
-</span><span class='line'>                       <span class="p">{</span><span class="nv">Old</span><span class="p">}</span> <span class="o">-&gt;</span>
-</span><span class='line'>                           <span class="c">%% But we want to make sure that any old one is closed first.</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">close</span><span class="p">(</span><span class="nv">Old</span><span class="p">),</span>
-</span><span class='line'>                           <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">()</span>
-</span><span class='line'>                   <span class="k">end</span><span class="p">,</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_handle({text, Msg}, Req, State) -&gt;
+    %% We create a new handler
+    {ok, Handle} = case State of
+                       undefined -&gt;
+                           erltrace:open();
+                       {Old} -&gt;
+                           %% But we want to make sure that any old one is closed first.
+                           erltrace:close(Old),
+                           erltrace:open()
+                   end,
+</code></pre>
 
 <p>Next we compile the dtrace script, <a href="https://www.github.com/project-fifo/erltrace">erltrace</a> only takes lists as strings and not binaries so we&rsquo;ve to convert it first and then we pass it along with our handle to get the script compiled. It will return <code>ok</code> if everything went well.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="c">%% We&#39;ve to confert cowboys binary to a list.</span>
-</span><span class='line'><span class="nv">Msg1</span> <span class="o">=</span> <span class="nb">binary_to_list</span><span class="p">(</span><span class="nv">Msg</span><span class="p">),</span>
-</span><span class='line'><span class="n">ok</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">compile</span><span class="p">(</span><span class="nv">Handle</span><span class="p">,</span> <span class="nv">Msg1</span><span class="p">),</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    %% We've to confert cowboys binary to a list.
+    Msg1 = binary_to_list(Msg),
+    ok = erltrace:compile(Handle, Msg1),
+</code></pre>
 
 <p>Okay now that we&rsquo;ve compiled the script we just need to tell dtrace to start running it, this happens with the <code>erltrace:go</code> call. Again it will return <code>ok</code> when everything is fine. Finally we just output the script as debug info and return.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="n">ok</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">go</span><span class="p">(</span><span class="nv">Handle</span><span class="p">),</span>
-</span><span class='line'><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;SCRIPT&gt; </span><span class="si">~s~n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">Msg</span><span class="p">]),</span>
-</span><span class='line'><span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg1</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">    ok = erltrace:go(Handle),
+    io:format("SCRIPT&gt; ~s~n", [Msg]),
+    {ok, Req, {Msg1, Handle}};
+</code></pre>
 
 <p>Next up: reading the dtrace data, <code>erltrace:walk</code> do that for you and hand back a datastructur to parse. It is returned as <code>{ok, Data}</code> when there is something to handle.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'><span class="nf">websocket_info</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle</span><span class="p">}</span> <span class="o">=</span> <span class="nv">State</span><span class="p">)</span> <span class="o">-&gt;</span>
-</span><span class='line'>     <span class="k">case</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">walk</span><span class="p">(</span><span class="nv">Handle</span><span class="p">)</span> <span class="k">of</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">R</span><span class="p">}</span> <span class="o">-&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">websocket_info(tick, Req, {Msg, Handle} = State) -&gt;
+     case erltrace:walk(Handle) of
+         {ok, R} -&gt;
+</code></pre>
 
 <p>Now since we have JSON on the other side we need to transform the data here Erlangs list comprehensions come to the rescue. Data is returned as <code>[{lquantize, [Name], { {BucketStart, BucketEnd
 }, BucketCount}}]</code> and we want it in the form <code>{Name, [[BucketStart, BucketEnd], BucketCount]</code> so here you go. We can tehn simpley encode this with <a href="https://github.com/talentdeficit/jsx">jsx</a> and send it over the wire:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>         <span class="nv">JSON</span> <span class="o">=</span> <span class="p">[{</span><span class="nb">list_to_binary</span><span class="p">(</span><span class="nv">Call</span><span class="p">),[</span> <span class="p">[[</span><span class="nv">S</span><span class="p">,</span> <span class="nv">E</span><span class="p">],</span> <span class="nv">V</span><span class="p">]||</span> <span class="p">{</span> <span class="p">{</span><span class="nv">S</span><span class="p">,</span> <span class="nv">E</span><span class="p">},</span> <span class="nv">V</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">Vs</span><span class="p">]}||</span> <span class="p">{</span><span class="n">lquantize</span><span class="p">,</span> <span class="p">[</span><span class="nv">Call</span><span class="p">],</span> <span class="nv">Vs</span><span class="p">}</span> <span class="o">&lt;-</span> <span class="nv">R</span><span class="p">],</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">reply</span><span class="p">,</span> <span class="p">{</span><span class="n">text</span><span class="p">,</span> <span class="nn">jsx</span><span class="p">:</span><span class="nf">encode</span><span class="p">(</span><span class="nv">JSON</span><span class="p">)},</span> <span class="nv">Req</span><span class="p">,</span> <span class="nv">State</span><span class="p">,</span> <span class="n">hibernate</span><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">             JSON = [{list_to_binary(Call),[ [[S, E], V]|| { {S, E}, V} &lt;- Vs]}|| {lquantize, [Call], Vs} &lt;- R],
+             {reply, {text, jsx:encode(JSON)}, Req, State, hibernate};
+</code></pre>
 
 <p><code>ok</code> will be returned if there is no data yet to consume, we simply do nothing here.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>     <span class="n">ok</span> <span class="o">-&gt;</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}};</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">         ok -&gt;
+             {ok, Req, {Msg, Handle1}};
+</code></pre>
 
 <p>The last case is just for making things proper, if an error is returned we close stop the current handle and create a new one the same we did in the init.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='erlang'><span class='line'>     <span class="nv">Other</span> <span class="o">-&gt;</span>
-</span><span class='line'>         <span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Error: </span><span class="si">~p</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nv">E</span><span class="p">]),</span>
-</span><span class='line'>         <span class="k">try</span>
-</span><span class='line'>             <span class="nn">erltrace</span><span class="p">:</span><span class="nf">stop</span><span class="p">(</span><span class="nv">Handle</span><span class="p">)</span>
-</span><span class='line'>         <span class="k">catch</span>
-</span><span class='line'>             <span class="p">_:_</span> <span class="o">-&gt;</span>
-</span><span class='line'>                 <span class="n">ok</span>
-</span><span class='line'>         <span class="k">end</span><span class="p">,</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}</span> <span class="o">=</span> <span class="nn">erltrace</span><span class="p">:</span><span class="nf">open</span><span class="p">(),</span>
-</span><span class='line'>         <span class="nn">erltrace</span><span class="p">:</span><span class="nf">compile</span><span class="p">(</span><span class="nv">Handle1</span><span class="p">,</span> <span class="nv">Msg</span><span class="p">),</span>
-</span><span class='line'>         <span class="nn">erltrace</span><span class="p">:</span><span class="nf">go</span><span class="p">(</span><span class="nv">Handle</span><span class="p">),</span>
-</span><span class='line'>         <span class="p">{</span><span class="n">ok</span><span class="p">,</span> <span class="nv">Req</span><span class="p">,</span> <span class="p">{</span><span class="nv">Msg</span><span class="p">,</span> <span class="nv">Handle1</span><span class="p">}}</span>
-</span><span class='line'> <span class="k">end</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<pre><code class="erlang">         Other -&gt;
+             io:format("Error: ~p", [E]),
+             try
+                 erltrace:stop(Handle)
+             catch
+                 _:_ -&gt;
+                     ok
+             end,
+             {ok, Handle1} = erltrace:open(),
+             erltrace:compile(Handle1, Msg),
+             erltrace:go(Handle),
+             {ok, Req, {Msg, Handle1}}
+     end;
+</code></pre>
 
 <p>Now that all put together and run it on a dtrace capable machine we get a nice little heatmap that updates every second:</p>
 
@@ -576,7 +727,7 @@
 
 
 
-<time class='entry-date' datetime='2013-01-24T22:35:00+01:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>10:35 pm</span></time>
+
         
       </p>
     
@@ -595,7 +746,7 @@
     
     <a href="/blog/archives">Blog Archives</a>
     
-    <a class="next" href="/index.html">Newer &rarr;</a>
+    <a class="next" href="/">Newer &rarr;</a>
     
   </div>
 </div>
@@ -604,6 +755,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/05/21/dell-xps-slash-windows-as-a-dev-env/">Dell XPS/Windows as a Dev Env</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/07/10/migrating-to-rebar3/">Migrating to Rebar3</a>
@@ -621,17 +776,13 @@
         <a href="/blog/2014/01/01/backups-with-project-fifo/">Backups With Project FiFo</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/13/a-asynchronous-gced-or-set/">A Asynchronously GCed or Set</a>
-      </li>
-    
   </ul>
 </section>
 
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/Licenser">@Licenser</a> on GitHub
@@ -667,7 +818,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Heinz N. &#8216;Licenser&#8217; Gies -
+  Copyright &copy; 2018 - Heinz N. 'Licenser' Gies -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
