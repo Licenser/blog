@@ -1,4 +1,4 @@
-baseURL = "https://bloc.licenser.net/"
+baseURL = "https://blog.licenser.net/"
 languageCode = "en-us"
 title = "Lice!"
 theme = "hugo-theme-bootstrap4-blog"
