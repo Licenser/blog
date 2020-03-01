@@ -1,0 +1,56 @@
+==================================================================
+https://keybase.io/licenser
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://blog.licenser.net
+  * I am licenser (https://keybase.io/licenser) on keybase.
+  * I have a public key ASAxQX9etm44sGS_VXGQrkf-pH-2get90KkklXs9ffgJgwo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0101b7a5a951578e22af5482cc159104f514e09b171172627f2a35fdcb43ec1e13270a",
+      "host": "keybase.io",
+      "kid": "012031417f5eb66e38b064bf557190ae47fea47fb681eb7dd0a924957b3d7df809830a",
+      "uid": "959be84043fb6c4bf1f626f583906d00",
+      "username": "licenser"
+    },
+    "merkle_root": {
+      "ctime": 1583067819,
+      "hash": "60a91f64121a0690f604c80000d62f1e1ebb7b6ff05b4c2df9851fe60ba68494c0d642caa1f281320930cebc5da0a6607c97da2ecef9c2e4e3802435e62e37c2",
+      "hash_meta": "05f6cbc715e147c3997868bf40be6d7cb9df2b922e41dd092ce688176c874e07",
+      "seqno": 14859314
+    },
+    "service": {
+      "entropy": "LspvFdWWejjsb1WPXWHRX4mC",
+      "hostname": "blog.licenser.net",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "5.2.1"
+  },
+  "ctime": 1583067825,
+  "expire_in": 504576000,
+  "prev": "4c25c1ea6dda2e1822781dfa926dbb18f87b2f688f4142f17332863f36016819",
+  "seqno": 82,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgMUF/XrZuOLBkv1VxkK5H/qR/toHrfdCpJJV7PX34CYMKp3BheWxvYWTESpcCUsQgTCXB6m3aLhgieB36km27GPh7L2iPQULxczKGPzYBaBnEIJzQ2VKQnh6N3AezsL0UIS1usWyPUWDd3u0K6j5bwuXDAgHCo3NpZ8RAgDzX/RyyfUUCSXZlAOukyX8thSoxx/Ju2LhzXlD8eofL2UO5SViE5LxAoBX/mlIsgvaFgfIki+B34yheRr1IBKhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIClbntt7U/vpWxG0ZFA56QRulQ1+UeK3Ds39t+NBvVF+o3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/licenser
+
+==================================================================
