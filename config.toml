@@ -2,7 +2,7 @@ baseURL = "https://blog.licenser.net/"
 languageCode = "en-us"
 title = "Lice!"
 theme = "hugo-theme-bootstrap4-blog"
-disqusShortname: lice
+disqusShortname = "lice"
 
 [permalinks]
   posts = "/:year/:month/:title/"
