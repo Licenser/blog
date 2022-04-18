@@ -1,6 +1,7 @@
 ---
 title: "Backups with Project FiFo"
 date: 2014-01-01
+tags: ["fifo"]
 ---
 With 0.4.3 FiFo introduces support for [LeoFS](http://www.leofs.org) and this allows for some quite nice new features. Most importantly it decouples FiFo's operations from storing big amounts of data which makes maintaining either of this much more sensible and scaling storage much more easy.
 

@@ -1,6 +1,7 @@
 ---
 title: "Post-mortem of a failed support case."
 date: 2014-02-01
+tags: ["fifo"]
 ---
 
 Every now and then I check the link reports for Project FiFo to see what people think and write about it. Recently I stumbled about [an article](http://consulting.miracleas.dk/blog/post/2014/01/17/Quick-and-Dirty-spawned-LightlyCloudy!.aspx) that oddly enough made me both proud and sad. It actually was a rather negative one, which is a shame, but on the other hand a project isn't mature until people care enough to complain.

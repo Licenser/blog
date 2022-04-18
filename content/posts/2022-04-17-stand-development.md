@@ -2,6 +2,7 @@
 title: "Stand Development"
 date: 2022-04-17T15:48:58+02:00
 draft: false
+tags: ["photography"]
 ---
 
 Let's talk about something different today, photography! Or, more precisely, developing black and white film.

@@ -1,6 +1,7 @@
 ---
 title: "A asynchronously GCed OR Set"
 date: 2013-06-13
+tags: ["erlang"]
 ---
 
 Following the [article about Asynchronous garbage collection with CRDTs](/blog/2013/06/11/asyncronous-garbage-collection-with-crdts/) I experimented with [implementing the concept](https://github.com/Licenser/ecrdt/blob/master/src/vorsetg.erl). The OR Set is a very nice data structure for this  since it's rather simple and so is it's garbage!

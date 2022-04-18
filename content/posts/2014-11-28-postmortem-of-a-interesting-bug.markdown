@@ -1,6 +1,7 @@
 ---
 title: "Postmortem of a interesting bug"
 date: 2014-11-28
+tags: ["fifo"]
 ---
 ## Symptoms
 After a full network outage in a larger system (7 FiFo instances and, a few dozen of hypervisors, VM's in the 3 digit number) a small percentage of the VM's stored in FiFo lost information which package was assigned to them and which organization they belong to.

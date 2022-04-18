@@ -1,6 +1,7 @@
 ---
 title: "Multithreaded rust on Threadripper"
 date: 2020-01-11
+tags: ["rust"]
 ---
 
 I recently ran some benchmarks on a Threadripper 3960X system and the results were surprising me quite a bit. Simplified, the throughput the benchmark recorded went down, from 341 MB/s on a MBP to 136 MB/s on a Threadripper desktop. Prior I had read Daniel Lemire's notes on [the sub optimal performance for simdjson on Zen 2](https://lemire.me/blog/2019/12/05/instructions-per-cycle-amd-versus-intel/), which is heavily used in the benchmark, but the suggested drop were a few percent not half.

@@ -1,6 +1,7 @@
 ---
 title: "Asynchronous garbage collection with CRDTs"
 date: 2013-06-11
+tags: ["erlang"]
 ---
 So CRDTs are very very nice data structures awesome for eventual consistent applications like riak, or the components of [Project-FiFo](http://project-fifo.net). So they have one big drawback, most of them collect garbage, and over time that can sum up to a lot making them pretty unpractical in many cases. Collecting this garbage is a bit tricky, since usually it means synchronising the data - which going back to the eventual consistent stuff prevents either A or P.
 
