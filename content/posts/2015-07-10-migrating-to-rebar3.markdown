@@ -1,6 +1,7 @@
 ---
 title: "migrating to rebar3"
 date: 2015-07-10
+tags: ["erlang"]
 ---
 
 # A long journey from rebar2 to rebar3

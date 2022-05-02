@@ -1,6 +1,7 @@
 ---
 title: "Happy birthday Project FiFo"
 date: 2013-05-06
+tags: ["fifo"]
 ---
 
 Some might know it, some might not and some might not care but for what it's worth I'm the author of [Project-FiFo](http://project-fifo.net) (or most of it) and today is Project-FiFo's first birthday (since the domain registration) and I want to take this chance to look back to the past year and reflect, say thank you to all of you and take a look in the future.
