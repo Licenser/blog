@@ -15,15 +15,12 @@ url = "https://github.com/Licenser"
 [[menu.sidebar]]
 name = "Twitter"
 url = "https://twitter.com/heinz_gies"
+
+#  we have to put this inin sidebar.html
 # [[menu.sidebar]]
-#  in sidebar.html
 #  name = "Mastodon"
 #  rel="me"
 #  url = "https://mastodon.social/@heinz"
-
-#[[menu.navbar]]
-#  name = "Link 1"
-#  url = "https://example.org"
 
 
 # Theme variables
