@@ -24,7 +24,7 @@
     "bootstrap": "~4.4.1",
     "clean-css-cli": "^4.3.0",
     "cookieconsent": "3.0.4",
-    "node-sass": "^7.0.3",
+    "node-sass": "^9.0.0",
     "rtlcss": "^4.0.0",
     "webpack": "^5.76.0",
     "webpack-cli": "^5.0.1"
